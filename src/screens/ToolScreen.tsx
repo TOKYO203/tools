@@ -1,30 +1,27 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMemo, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { calculateGlasgow } from '../domain/clinical/glasgow';
+import { calculateAdditiveScore, CalculatorValues, getCalculatorDefinition, getDefaultValues } from '../domain/clinical/definitions';
 import { ClinicalTool } from '../domain/clinical/types';
 import { useActivity } from '../state/ActivityContext';
 import { colors, radius, spacing } from '../theme/tokens';
 
-type ScoreChoiceProps = { title: string; value: number; options: { value: number; label: string }[]; onChange: (value: number) => void };
-function ScoreChoice({ title, value, options, onChange }: ScoreChoiceProps) {
-  return <View style={styles.choiceBlock}><Text style={styles.choiceTitle}>{title}</Text><View style={styles.options}>{options.map((option) => <Pressable key={option.value} onPress={() => onChange(option.value)} style={[styles.option, value === option.value && styles.optionActive]}><View style={[styles.scoreDot, value === option.value && styles.scoreDotActive]}><Text style={[styles.scoreNumber, value === option.value && styles.scoreNumberActive]}>{option.value}</Text></View><Text style={[styles.optionText, value === option.value && styles.optionTextActive]}>{option.label}</Text>{value === option.value && <Ionicons name="checkmark-circle" size={20} color={colors.teal} />}</Pressable>)}</View></View>;
+type ScoreChoiceProps = { title: string; shortLabel: string; value: number; options: { value: number; label: string }[]; onChange: (value: number) => void };
+function ScoreChoice({ title, shortLabel, value, options, onChange }: ScoreChoiceProps) {
+  return <View style={styles.choiceBlock}><Text style={styles.choiceTitle}>{title} ({shortLabel})</Text><View style={styles.options}>{options.map((option) => <Pressable key={option.value} onPress={() => onChange(option.value)} style={[styles.option, value === option.value && styles.optionActive]}><View style={[styles.scoreDot, value === option.value && styles.scoreDotActive]}><Text style={[styles.scoreNumber, value === option.value && styles.scoreNumberActive]}>{option.value}</Text></View><Text style={[styles.optionText, value === option.value && styles.optionTextActive]}>{option.label}</Text>{value === option.value && <Ionicons name="checkmark-circle" size={20} color={colors.teal} />}</Pressable>)}</View></View>;
 }
-
-const eye = [{ value: 4, label: 'Spontanée' }, { value: 3, label: 'Au son' }, { value: 2, label: 'À la pression' }, { value: 1, label: 'Aucune' }];
-const verbal = [{ value: 5, label: 'Orientée' }, { value: 4, label: 'Confuse' }, { value: 3, label: 'Mots' }, { value: 2, label: 'Sons' }, { value: 1, label: 'Aucune' }];
-const motor = [{ value: 6, label: 'Obéit aux consignes' }, { value: 5, label: 'Localise' }, { value: 4, label: 'Flexion normale' }, { value: 3, label: 'Flexion anormale' }, { value: 2, label: 'Extension' }, { value: 1, label: 'Aucune' }];
 
 export function ToolScreen({ tool, onBack }: { tool: ClinicalTool; onBack: () => void }) {
   const { isFavorite, toggleFavorite } = useActivity();
-  const [eyeValue, setEye] = useState(4); const [verbalValue, setVerbal] = useState(5); const [motorValue, setMotor] = useState(6);
-  const result = useMemo(() => calculateGlasgow({ eye: eyeValue, verbal: verbalValue, motor: motorValue }), [eyeValue, verbalValue, motorValue]);
+  const definition = getCalculatorDefinition(tool.id);
+  const [values, setValues] = useState<CalculatorValues>(() => definition ? getDefaultValues(definition) : {});
+  const result = useMemo(() => definition ? calculateAdditiveScore(definition, values) : null, [definition, values]);
   return <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
     <View style={styles.top}><Pressable onPress={onBack} style={styles.back} accessibilityLabel="Retour"><Ionicons name="arrow-back" size={22} color={colors.ink} /></Pressable><View style={styles.topActions}><View style={styles.offline}><Ionicons name="cloud-offline-outline" size={14} color={colors.teal} /><Text style={styles.offlineText}>100 % offline</Text></View><Pressable onPress={() => void toggleFavorite(tool.id)} style={styles.favorite} accessibilityLabel={isFavorite(tool.id) ? 'Retirer des favoris' : 'Ajouter aux favoris'}><Ionicons name={isFavorite(tool.id) ? 'heart' : 'heart-outline'} size={21} color={isFavorite(tool.id) ? colors.danger : colors.muted} /></Pressable></View></View>
     <View style={[styles.toolIcon, { backgroundColor: tool.surfaceColor }]}><Ionicons name={tool.icon as keyof typeof Ionicons.glyphMap} size={29} color={tool.color} /></View><Text style={styles.kicker}>{tool.specialty.toUpperCase()} · RISQUE {tool.risk}</Text><Text style={styles.title}>{tool.name}</Text><Text style={styles.summary}>{tool.summary}</Text>
-    {!tool.available ? <View style={styles.unavailable}><Ionicons name="construct-outline" size={24} color={colors.amber} /><View><Text style={styles.unavailableTitle}>Fiche en validation</Text><Text style={styles.unavailableText}>Le calcul sera activé après revue des sources et tests cliniques.</Text></View></View> : <>
-      <View style={styles.resultCard}><Text style={styles.resultLabel}>SCORE ACTUEL</Text><Text style={styles.resultValue}>{result.total}<Text style={styles.resultMax}> / 15</Text></Text><Text style={styles.notation}>{result.notation}</Text><Text style={styles.resultHint}>Toujours communiquer les composantes avec le total.</Text></View>
-      <ScoreChoice title="Ouverture des yeux (E)" value={eyeValue} options={eye} onChange={setEye} /><ScoreChoice title="Réponse verbale (V)" value={verbalValue} options={verbal} onChange={setVerbal} /><ScoreChoice title="Réponse motrice (M)" value={motorValue} options={motor} onChange={setMotor} />
+    {!tool.available || !definition || !result ? <View style={styles.unavailable}><Ionicons name="construct-outline" size={24} color={colors.amber} /><View><Text style={styles.unavailableTitle}>Fiche en validation</Text><Text style={styles.unavailableText}>Le calcul sera activé après revue des sources et tests cliniques.</Text></View></View> : <>
+      <View style={styles.resultCard}><Text style={styles.resultLabel}>SCORE ACTUEL</Text><Text style={styles.resultValue}>{result.total}<Text style={styles.resultMax}> / {definition.max}</Text></Text><Text style={styles.notation}>{result.notation}</Text><Text style={styles.resultHint}>Toujours communiquer les composantes avec le total.</Text></View>
+      {definition.fields.map((field) => <ScoreChoice key={field.id} title={field.label} shortLabel={field.shortLabel} value={values[field.id]} options={field.options} onChange={(value) => setValues((current) => ({ ...current, [field.id]: value }))} />)}
     </>}
     <Info title="Quand l’utiliser ?" icon="help-circle-outline" items={tool.indications} /><Info title="Limites et vigilance" icon="warning-outline" items={tool.limitations} warning />
     {!!tool.sources.length && <View style={styles.info}><View style={styles.infoTitleRow}><Ionicons name="library-outline" size={19} color={colors.teal} /><Text style={styles.infoTitle}>Source vérifiée</Text></View>{tool.sources.map((source) => <Pressable key={source.url} onPress={() => Linking.openURL(source.url)}><Text style={styles.sourceTitle}>{source.title}</Text><Text style={styles.sourceText}>{source.citation}</Text><Text style={styles.sourceMeta}>Consultée le {source.accessedAt} · Fiche v{tool.version}</Text></Pressable>)}</View>}

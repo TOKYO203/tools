@@ -28,3 +28,5 @@ npm test
 - `src/theme` : design tokens partagés.
 
 Le contenu clinique est versionné et séparé de l’interface. Un outil marqué `review_due` reste visible dans le registre, mais son calcul demeure désactivé jusqu’à validation documentaire et tests de référence.
+
+Les calculateurs utilisent des définitions déclaratives validées par Zod. Le registre refuse ainsi les identifiants dupliqués, les options invalides et l’activation d’une fiche sans définition, source et statut validé.
