@@ -29,9 +29,9 @@ function AppContent() {
     if (showPremium) return <PremiumScreen onBack={() => setShowPremium(false)} />;
     switch (tab) {
       case 'catalogue': return <CatalogueScreen onOpenTool={openTool} />;
+      case 'progress': return <ProgressScreen onOpenTool={openTool} />;
       case 'learn': return <LearnScreen />;
-      case 'progress': return <ProgressScreen />;
-      default: return <HomeScreen onOpenTool={openTool} onBrowse={() => setTab('catalogue')} onPremium={() => setShowPremium(true)} />;
+      default: return <HomeScreen onOpenTool={openTool} onBrowse={() => setTab('catalogue')} onScores={() => setTab('progress')} onEcg={() => setTab('learn')} onPremium={() => setShowPremium(true)} />;
     }
   }, [openTool, selectedTool, showPremium, tab]);
 
