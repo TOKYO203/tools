@@ -4,22 +4,22 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { colors, radius, shadow, spacing } from '../theme/tokens';
 
 const benefits = [
-  { icon: 'library-outline', title: 'Catalogue clinique complet', text: 'Scores essentiels, spécialisés et sous-estimés dans une seule bibliothèque.' },
-  { icon: 'school-outline', title: 'Comprendre, pas seulement calculer', text: 'Explications, pièges, cas cliniques et quiz liés à chaque outil.' },
-  { icon: 'analytics-outline', title: 'Progression intelligente', text: 'Révisions ciblées et mémorisation espacée selon vos difficultés.' },
-  { icon: 'cloud-offline-outline', title: 'Disponible partout', text: 'Tout le cœur clinique reste accessible sans connexion.' },
+  { icon: 'library-outline', title: 'Plus d’outils cliniques', text: 'Une bibliothèque plus large de références pratiques classées par spécialité.' },
+  { icon: 'calculator-outline', title: 'Scores spécialisés', text: 'Davantage de calculateurs avec critères explicites, interprétation et sources.' },
+  { icon: 'pulse-outline', title: 'ECG avancé', text: 'Calculateurs et aides de lecture ECG supplémentaires dans un espace dédié.' },
+  { icon: 'cloud-offline-outline', title: 'Disponible partout', text: 'Le cœur clinique reste accessible hors connexion.' },
 ] as const;
 
 export function PremiumScreen({ onBack }: { onBack: () => void }) {
   return <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-    <View style={styles.top}><Pressable onPress={onBack} style={styles.back} accessibilityLabel="Retour"><Ionicons name="arrow-back" size={22} color={colors.ink} /></Pressable><View style={styles.secure}><Ionicons name="shield-checkmark" size={15} color={colors.teal} /><Text style={styles.secureText}>ACHAT SÉCURISÉ</Text></View></View>
+    <View style={styles.top}><Pressable onPress={onBack} style={styles.back} accessibilityLabel="Retour"><Ionicons name="arrow-back" size={22} color={colors.ink} /></Pressable><View style={styles.secure}><Ionicons name="shield-checkmark" size={15} color={colors.teal} /><Text style={styles.secureText}>ACCÈS PREMIUM</Text></View></View>
     <LinearGradient colors={['#0A756C', '#073D3A']} style={styles.hero}>
-      <View style={styles.orb} /><View style={styles.crown}><Ionicons name="diamond" size={23} color="#FFE09A" /></View><Text style={styles.label}>MEDICAL TOOLBOX PREMIUM</Text><Text style={styles.title}>Maîtrisez davantage.{`\n`}Hésitez moins.</Text><Text style={styles.subtitle}>L’outil quotidien qui transforme chaque calcul en apprentissage durable.</Text>
-      <View style={styles.proofRow}><Proof value="100 %" label="offline" /><Proof value="0" label="publicité" /><Proof value="1" label="espace clinique" /></View>
+      <View style={styles.orb} /><View style={styles.crown}><Ionicons name="diamond" size={23} color="#FFE09A" /></View><Text style={styles.label}>MEDICAL TOOLBOX PREMIUM</Text><Text style={styles.title}>Plus d’outils.{`\n`}Plus de précision.</Text><Text style={styles.subtitle}>Étendez Medical Toolbox avec des scores spécialisés et des fonctions ECG avancées.</Text>
+      <View style={styles.proofRow}><Proof value="100 %" label="offline" /><Proof value="0" label="publicité" /><Proof value="3" label="piliers" /></View>
     </LinearGradient>
-    <Text style={styles.sectionTitle}>Ce que Premium change pour vous</Text>
+    <Text style={styles.sectionTitle}>Ce que Premium ajoute</Text>
     <View style={styles.list}>{benefits.map((benefit) => <View key={benefit.title} style={styles.benefit}><View style={styles.benefitIcon}><Ionicons name={benefit.icon} size={21} color={colors.teal} /></View><View style={styles.benefitCopy}><Text style={styles.benefitTitle}>{benefit.title}</Text><Text style={styles.benefitText}>{benefit.text}</Text></View><Ionicons name="checkmark-circle" size={20} color={colors.teal} /></View>)}</View>
-    <View style={styles.plan}><View style={styles.planHead}><View><Text style={styles.planEyebrow}>ACCÈS PREMIUM</Text><Text style={styles.planTitle}>Une seule expérience. Tout votre parcours.</Text></View><View style={styles.badge}><Text style={styles.badgeText}>RECOMMANDÉ</Text></View></View><Text style={styles.planText}>Le tarif et le moyen de paiement disponibles dans votre pays seront affichés avant toute confirmation.</Text><Pressable style={styles.cta}><Text style={styles.ctaText}>Découvrir l’offre Premium</Text><Ionicons name="arrow-forward" size={18} color="#FFFFFF" /></Pressable><Text style={styles.reassurance}>Aucun paiement automatique sans votre confirmation.</Text></View>
+    <View style={styles.plan}><View style={styles.planHead}><View><Text style={styles.planEyebrow}>ACCÈS PREMIUM</Text><Text style={styles.planTitle}>Outils, scores et ECG dans une seule application.</Text></View><View style={styles.badge}><Text style={styles.badgeText}>PREMIUM</Text></View></View><Text style={styles.planText}>Le tarif et le moyen de paiement disponibles dans votre pays seront affichés avant toute confirmation.</Text><Pressable style={styles.cta}><Text style={styles.ctaText}>Découvrir l’offre Premium</Text><Ionicons name="arrow-forward" size={18} color="#FFFFFF" /></Pressable><Text style={styles.reassurance}>Aucun paiement automatique sans votre confirmation.</Text></View>
     <View style={styles.trust}><Ionicons name="heart-outline" size={22} color={colors.teal} /><Text style={styles.trustText}><Text style={styles.trustStrong}>Conçu pour votre confiance.</Text>{`\n`}Sources visibles, données locales et limites cliniques clairement indiquées.</Text></View>
   </ScrollView>;
 }
