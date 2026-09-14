@@ -6,8 +6,8 @@ export type AppTab = 'home' | 'catalogue' | 'learn' | 'progress';
 const items: { key: AppTab; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { key: 'home', label: 'Accueil', icon: 'home-outline' },
   { key: 'catalogue', label: 'Outils', icon: 'grid-outline' },
-  { key: 'learn', label: 'Apprendre', icon: 'school-outline' },
-  { key: 'progress', label: 'Progrès', icon: 'analytics-outline' },
+  { key: 'progress', label: 'Scores', icon: 'calculator-outline' },
+  { key: 'learn', label: 'ECG', icon: 'pulse-outline' },
 ];
 
 export function BottomNav({ active, onChange }: { active: AppTab; onChange: (tab: AppTab) => void }) {
