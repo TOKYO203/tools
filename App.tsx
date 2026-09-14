@@ -8,6 +8,7 @@ import { CatalogueScreen } from './src/screens/CatalogueScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { LearnScreen } from './src/screens/LearnScreen';
 import { ProgressScreen } from './src/screens/ProgressScreen';
+import { PremiumScreen } from './src/screens/PremiumScreen';
 import { ToolScreen } from './src/screens/ToolScreen';
 import { ActivityProvider, useActivity } from './src/state/ActivityContext';
 import { colors } from './src/theme/tokens';
@@ -19,24 +20,26 @@ export default function App() {
 function AppContent() {
   const [tab, setTab] = useState<AppTab>('home');
   const [selectedTool, setSelectedTool] = useState<ClinicalTool | null>(null);
+  const [showPremium, setShowPremium] = useState(false);
   const { recordOpen } = useActivity();
   const openTool = useCallback((tool: ClinicalTool) => { setSelectedTool(tool); void recordOpen(tool.id); }, [recordOpen]);
 
   const content = useMemo(() => {
     if (selectedTool) return <ToolScreen tool={selectedTool} onBack={() => setSelectedTool(null)} />;
+    if (showPremium) return <PremiumScreen onBack={() => setShowPremium(false)} />;
     switch (tab) {
       case 'catalogue': return <CatalogueScreen onOpenTool={openTool} />;
       case 'learn': return <LearnScreen />;
       case 'progress': return <ProgressScreen />;
-      default: return <HomeScreen onOpenTool={openTool} onBrowse={() => setTab('catalogue')} />;
+      default: return <HomeScreen onOpenTool={openTool} onBrowse={() => setTab('catalogue')} onPremium={() => setShowPremium(true)} />;
     }
-  }, [openTool, selectedTool, tab]);
+  }, [openTool, selectedTool, showPremium, tab]);
 
   return (
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
         <StatusBar style="dark" />
         <View style={styles.app}>{content}</View>
-        {!selectedTool && <BottomNav active={tab} onChange={setTab} />}
+        {!selectedTool && !showPremium && <BottomNav active={tab} onChange={setTab} />}
       </SafeAreaView>
   );
 }
