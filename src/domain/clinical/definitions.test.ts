@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateAdditiveScore, calculatorDefinitions, getDefaultValues } from './definitions';
+import { calculateAdditiveScore, calculatorDefinitions, getEmptyValues, isCalculatorComplete } from './definitions';
 import { clinicalRegistry } from './registry';
 
 describe('registre clinique', () => {
@@ -16,7 +16,11 @@ describe('registre clinique', () => {
 
 describe('moteur additif', () => {
   const definition = calculatorDefinitions[0];
-  it('calcule les valeurs par défaut', () => expect(calculateAdditiveScore(definition, getDefaultValues(definition))).toEqual({ total: 15, notation: 'E4 V5 M6', interpretation: undefined }));
+  it('démarre sans réponse implicite', () => {
+    const values = getEmptyValues(definition);
+    expect(isCalculatorComplete(definition, values)).toBe(false);
+    expect(() => calculateAdditiveScore(definition, values)).toThrow('Tous les critères');
+  });
   it('rejette une option absente de la définition', () => expect(() => calculateAdditiveScore(definition, { eye: 9, verbal: 5, motor: 6 })).toThrow());
   it.each([
     ['cha2ds2-vasc', 9],
@@ -29,8 +33,9 @@ describe('moteur additif', () => {
   });
   it('interprète le modèle de Wells à deux niveaux', () => {
     const item = calculatorDefinitions.find((candidate) => candidate.toolId === 'wells-pe')!;
-    expect(calculateAdditiveScore(item, getDefaultValues(item)).interpretation).toContain('improbable');
-    const probable = { ...getDefaultValues(item), dvtSigns: 3, alternative: 3 };
+    const improbable = Object.fromEntries(item.fields.map((field) => [field.id, field.options[0].value]));
+    expect(calculateAdditiveScore(item, improbable).interpretation).toContain('improbable');
+    const probable = { ...improbable, dvtSigns: 3, alternative: 3 };
     expect(calculateAdditiveScore(item, probable).interpretation).toContain('probable');
   });
 });
