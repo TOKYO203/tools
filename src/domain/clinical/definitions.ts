@@ -6,7 +6,7 @@ const rangeSchema = z.object({ min: z.number(), max: z.number(), label: z.string
 const definitionSchema = z.object({ toolId: z.string().min(1), fields: z.array(fieldSchema).min(1), min: z.number(), max: z.number(), ranges: z.array(rangeSchema).optional(), resultHint: z.string().min(1) });
 
 export type CalculatorDefinition = z.infer<typeof definitionSchema>;
-export type CalculatorValues = Record<string, number>;
+export type CalculatorValues = Record<string, number | null>;
 
 const definitions: CalculatorDefinition[] = [{
   toolId: 'glasgow-coma-scale', min: 3, max: 15, resultHint: 'Toujours communiquer les composantes avec le total.',
@@ -51,12 +51,14 @@ const definitions: CalculatorDefinition[] = [{
 
 export const calculatorDefinitions = definitions.map((definition) => definitionSchema.parse(definition));
 export function getCalculatorDefinition(toolId: string) { return calculatorDefinitions.find((definition) => definition.toolId === toolId); }
-export function getDefaultValues(definition: CalculatorDefinition): CalculatorValues { return Object.fromEntries(definition.fields.map((field) => [field.id, field.options[0].value])); }
+export function getEmptyValues(definition: CalculatorDefinition): CalculatorValues { return Object.fromEntries(definition.fields.map((field) => [field.id, null])); }
+export function isCalculatorComplete(definition: CalculatorDefinition, values: CalculatorValues) { return definition.fields.every((field) => values[field.id] !== null && values[field.id] !== undefined); }
 
 export function calculateAdditiveScore(definition: CalculatorDefinition, values: CalculatorValues) {
+  if (!isCalculatorComplete(definition, values)) throw new Error('Tous les critères doivent être renseignés');
   const components = definition.fields.map((field) => {
     const value = values[field.id];
-    if (!field.options.some((option) => option.value === value)) throw new Error(`Valeur invalide : ${field.id}`);
+    if (value === null || value === undefined || !field.options.some((option) => option.value === value)) throw new Error(`Valeur invalide : ${field.id}`);
     return { id: field.id, label: field.shortLabel, value };
   });
   const total = components.reduce((sum, component) => sum + component.value, 0);
