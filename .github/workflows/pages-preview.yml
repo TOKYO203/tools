@@ -1,6 +1,7 @@
 name: Pages Preview
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - preview/mvp-hardening
