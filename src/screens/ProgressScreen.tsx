@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { MotionSurface, Reveal } from '../components/MotionSurface';
 import { SearchBar } from '../components/SearchBar';
 import { ToolCard } from '../components/ToolCard';
 import { calculatorDefinitions } from '../domain/clinical/definitions';
@@ -44,13 +45,15 @@ export function ProgressScreen({ onOpenTool }: { onOpenTool: (tool: ClinicalTool
       <Text style={styles.title}>Scores cliniques</Text>
       <Text style={styles.subtitle}>Des outils rapides, sourcés et lisibles en quelques secondes.</Text>
 
-      <SearchBar value={query} onChangeText={setQuery} placeholder="Rechercher un score…" />
+      <Reveal>
+        <SearchBar value={query} onChangeText={setQuery} placeholder="Rechercher un score…" />
+      </Reveal>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
         {filters.map((item) => {
           const active = item === filter;
           return (
-            <Pressable key={item} onPress={() => setFilter(item)} style={[styles.filter, active && styles.filterActive]}>
+            <Pressable key={item} onPress={() => setFilter(item)} style={({ pressed }) => [styles.filter, active && styles.filterActive, pressed && styles.filterPressed]}>
               <Text style={[styles.filterText, active && styles.filterTextActive]}>{item}</Text>
             </Pressable>
           );
@@ -58,19 +61,21 @@ export function ProgressScreen({ onOpenTool }: { onOpenTool: (tool: ClinicalTool
       </ScrollView>
 
       {!query && filter === 'Tous' && heart && (
-        <Pressable onPress={() => onOpenTool(heart)} style={({ pressed }) => pressed && styles.pressed}>
-          <LinearGradient colors={['#0A3836', '#0F6359']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.featured}>
-            <View style={styles.featuredTop}>
-              <View style={styles.featuredIcon}><Ionicons name="heart" size={20} color="#CCF5E8" /></View>
-              <View style={styles.featuredBody}>
-                <Text style={styles.featuredTitle}>HEART Score</Text>
-                <Text style={styles.featuredMeta}>Cardiologie / Urgences · 2 min</Text>
+        <Reveal delay={60}>
+          <MotionSurface onPress={() => onOpenTool(heart)} accessibilityLabel="Ouvrir HEART Score">
+            <LinearGradient colors={['#0A3836', '#0F6359']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.featured}>
+              <View style={styles.featuredTop}>
+                <View style={styles.featuredIcon}><Ionicons name="heart" size={20} color="#CCF5E8" /></View>
+                <View style={styles.featuredBody}>
+                  <Text style={styles.featuredTitle}>HEART Score</Text>
+                  <Text style={styles.featuredMeta}>Cardiologie / Urgences · 2 min</Text>
+                </View>
+                <View style={styles.validated}><Text style={styles.validatedText}>VALIDÉ</Text></View>
               </View>
-              <View style={styles.validated}><Text style={styles.validatedText}>VALIDÉ</Text></View>
-            </View>
-            <Text style={styles.featuredText}>Stratification structurée du risque cardiovasculaire, avec interprétation immédiatement visible.</Text>
-          </LinearGradient>
-        </Pressable>
+              <Text style={styles.featuredText}>Stratification structurée du risque cardiovasculaire, avec interprétation immédiatement visible.</Text>
+            </LinearGradient>
+          </MotionSurface>
+        </Reveal>
       )}
 
       <View style={styles.headerRow}>
@@ -78,9 +83,9 @@ export function ProgressScreen({ onOpenTool }: { onOpenTool: (tool: ClinicalTool
         <Text style={styles.count}>{visibleScores.length} outil{visibleScores.length > 1 ? 's' : ''}</Text>
       </View>
 
-      <View style={styles.list}>
+      <Reveal delay={110} style={styles.list}>
         {visibleScores.map((tool) => <ToolCard key={tool.id} tool={tool} onPress={() => onOpenTool(tool)} compact />)}
-      </View>
+      </Reveal>
 
       {!visibleScores.length && (
         <View style={styles.empty}>
@@ -101,13 +106,13 @@ export function ProgressScreen({ onOpenTool }: { onOpenTool: (tool: ClinicalTool
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.canvas },
   content: { padding: spacing.lg, paddingBottom: 36 },
-  pressed: { opacity: 0.78 },
   kicker: { color: colors.teal, fontWeight: '900', fontSize: 10, letterSpacing: 1.1 },
   title: { marginTop: 7, color: colors.ink, fontSize: 30, lineHeight: 36, fontWeight: '900', letterSpacing: -0.7 },
   subtitle: { marginTop: 8, marginBottom: 18, color: colors.muted, fontSize: 13, lineHeight: 19 },
   filters: { gap: 7, paddingTop: 14, paddingBottom: 16 },
   filter: { paddingHorizontal: 11, paddingVertical: 7, borderRadius: radius.pill, backgroundColor: colors.surface },
   filterActive: { backgroundColor: colors.tealDark },
+  filterPressed: { opacity: 0.72, transform: [{ scale: 0.97 }] },
   filterText: { color: colors.muted, fontSize: 9, fontWeight: '900' },
   filterTextActive: { color: colors.white },
   featured: { padding: 17, borderRadius: radius.md, ...shadow },
