@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { calculateAdditiveScore, calculatorDefinitions, getEmptyValues, isCalculatorComplete } from './definitions';
+import { formulaDefinitions } from './formulaDefinitions';
 import { clinicalRegistry } from './registry';
 
 describe('registre clinique', () => {
   it('ne contient aucun identifiant dupliqué', () => expect(new Set(clinicalRegistry.map((tool) => tool.id)).size).toBe(clinicalRegistry.length));
   it('exige une définition et une source pour chaque outil actif', () => {
-    const definitionIds = new Set(calculatorDefinitions.map((item) => item.toolId));
+    const definitionIds = new Set([...calculatorDefinitions.map((item) => item.toolId), ...formulaDefinitions.map((item) => item.toolId)]);
     for (const tool of clinicalRegistry.filter((item) => item.available)) {
       expect(definitionIds.has(tool.id)).toBe(true);
       expect(tool.sources.length).toBeGreaterThan(0);
