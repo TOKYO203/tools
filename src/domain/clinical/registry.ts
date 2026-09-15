@@ -92,6 +92,12 @@ export const clinicalRegistry: ClinicalTool[] = [
     sources: [{ title: 'Defining community acquired pneumonia severity on presentation to hospital', citation: 'Lim WS et al. Thorax. 2003;58(5):377–382.', url: 'https://pubmed.ncbi.nlm.nih.gov/12728155/', accessedAt: '2026-09-14' }],
   },
   {
+    id: 'psi-port', name: 'Pneumonia Severity Index', acronym: 'PSI / PORT', specialty: 'Pneumologie', summary: 'Stratifier le risque pronostique d’une pneumonie communautaire en cinq classes.', keywords: ['psi', 'port', 'pneumonie', 'pneumonia severity index', 'pneumologie', 'mortalité'], risk: 'B', status: 'validated', version: '1.0.0', reviewedAt: '2026-09-15', duration: '3 min', icon: 'list-outline', color: '#B96A12', surfaceColor: '#FFF1D9', available: true,
+    indications: ['Stratification pronostique chez l’adulte atteint de pneumonie communautaire, après évaluation de la gravité immédiate.'],
+    limitations: ['Le PSI complète mais ne remplace pas le jugement clinique, l’oxygénation, les critères de soins intensifs ni le contexte social.', 'La classe I repose sur une étape clinique préalable ; les classes II à V utilisent le score pondéré.', 'Un score bas ne doit pas retarder la prise en charge d’une instabilité ou d’un besoin de support respiratoire.'],
+    sources: [{ title: 'A prediction rule to identify low-risk patients with community-acquired pneumonia', citation: 'Fine MJ et al. N Engl J Med. 1997. PMID: 8995086.', url: 'https://pubmed.ncbi.nlm.nih.gov/8995086/', accessedAt: '2026-09-15' }],
+  },
+  {
     id: 'mcisaac', name: 'Centor modifié / McIsaac', acronym: 'McIsaac', specialty: 'ORL / Infectiologie', summary: 'Estimer la probabilité de pharyngite à streptocoque du groupe A à partir de signes cliniques et de l’âge.', keywords: ['mcisaac', 'centor', 'angine', 'pharyngite', 'streptocoque', 'gorge', 'oropharynx'], risk: 'B', status: 'validated', version: '1.0.0', reviewedAt: '2026-09-15', duration: '1 min', icon: 'medical-outline', color: '#B96A12', surfaceColor: '#FFF1D9', available: true,
     indications: ['Patient âgé de 3 ans ou plus consultant pour un mal de gorge compatible avec une pharyngite aiguë.'],
     limitations: ['Le score estime une probabilité ; il ne confirme pas à lui seul une infection à streptocoque A.', 'Les indications de test rapide, culture ou antibiothérapie doivent suivre les recommandations locales.', 'Le score n’est pas destiné aux enfants de moins de 3 ans.'],
