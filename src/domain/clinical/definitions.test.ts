@@ -25,15 +25,25 @@ describe('moteur additif', () => {
   it.each([
     ['cha2ds2-vasc', 9],
     ['cha2ds2-va', 8],
+    ['has-bled', 9],
     ['curb-65', 5],
     ['wells-pe', 12.5],
     ['qsofa', 3],
     ['perc', 8],
     ['heart-score', 10],
+    ['abcd2', 7],
+    ['rcri', 6],
+    ['nihss', 42],
   ])('atteint le maximum documenté pour %s', (toolId, maximum) => {
     const item = calculatorDefinitions.find((candidate) => candidate.toolId === toolId)!;
-    const values = Object.fromEntries(item.fields.map((field) => [field.id, field.options.at(-1)!.value]));
+    const values = Object.fromEntries(item.fields.map((field) => [field.id, Math.max(...field.options.map((option) => option.value))]));
     expect(calculateAdditiveScore(item, values).total).toBe(maximum);
+  });
+  it('gère la pondération négative de l’âge dans McIsaac', () => {
+    const item = calculatorDefinitions.find((candidate) => candidate.toolId === 'mcisaac')!;
+    const zeroClinical = { fever: 0, tonsils: 0, nodes: 0, cough: 0, age: -1 };
+    expect(calculateAdditiveScore(item, zeroClinical).total).toBe(-1);
+    expect(calculateAdditiveScore(item, { fever: 1, tonsils: 1, nodes: 1, cough: 1, age: 1 }).total).toBe(5);
   });
   it('interprète le modèle de Wells à deux niveaux', () => {
     const item = calculatorDefinitions.find((candidate) => candidate.toolId === 'wells-pe')!;
