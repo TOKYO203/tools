@@ -5,8 +5,8 @@ import { StyleSheet, View } from 'react-native';
 import { BottomNav, type AppTab } from './src/components/BottomNav';
 import { ClinicalTool } from './src/domain/clinical/types';
 import { CatalogueScreen } from './src/screens/CatalogueScreen';
+import { EcgToolkitScreen } from './src/screens/EcgToolkitScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
-import { LearnScreen } from './src/screens/LearnScreen';
 import { ProgressScreen } from './src/screens/ProgressScreen';
 import { PremiumScreen } from './src/screens/PremiumScreen';
 import { ToolScreen } from './src/screens/ToolScreen';
@@ -29,18 +29,18 @@ function AppContent() {
     if (showPremium) return <PremiumScreen onBack={() => setShowPremium(false)} />;
     switch (tab) {
       case 'catalogue': return <CatalogueScreen onOpenTool={openTool} />;
-      case 'learn': return <LearnScreen />;
-      case 'progress': return <ProgressScreen />;
-      default: return <HomeScreen onOpenTool={openTool} onBrowse={() => setTab('catalogue')} onPremium={() => setShowPremium(true)} />;
+      case 'progress': return <ProgressScreen onOpenTool={openTool} />;
+      case 'learn': return <EcgToolkitScreen />;
+      default: return <HomeScreen onOpenTool={openTool} onBrowse={() => setTab('catalogue')} onScores={() => setTab('progress')} onEcg={() => setTab('learn')} onPremium={() => setShowPremium(true)} />;
     }
   }, [openTool, selectedTool, showPremium, tab]);
 
   return (
-      <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <StatusBar style="dark" />
-        <View style={styles.app}>{content}</View>
-        {!selectedTool && !showPremium && <BottomNav active={tab} onChange={setTab} />}
-      </SafeAreaView>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <StatusBar style="dark" />
+      <View style={styles.app}>{content}</View>
+      {!selectedTool && !showPremium && <BottomNav active={tab} onChange={setTab} />}
+    </SafeAreaView>
   );
 }
 
