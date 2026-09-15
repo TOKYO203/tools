@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { MotionSurface, Reveal } from '../components/MotionSurface';
 import { ToolCard } from '../components/ToolCard';
 import { clinicalRegistry } from '../domain/clinical/registry';
 import { ClinicalTool } from '../domain/clinical/types';
@@ -37,18 +38,20 @@ export function HomeScreen({ onOpenTool, onBrowse, onScores, onEcg, onPremium }:
         </Pressable>
       </View>
 
-      <LinearGradient colors={[colors.tealDeep, '#08574F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
-        <Text style={styles.heroKicker}>VOTRE COMPAGNON CLINIQUE</Text>
-        <Text style={styles.heroTitle}>Décider plus vite.{`\n`}Vérifier plus sûrement.</Text>
-        <Text style={styles.heroText}>Scores validés, calculateurs et outils ECG réunis dans une interface pensée pour le terrain.</Text>
-        <View style={styles.offlinePill}>
-          <View style={styles.statusDot} />
-          <Text style={styles.offlineText}>Calculs disponibles hors ligne</Text>
-        </View>
-      </LinearGradient>
+      <Reveal>
+        <LinearGradient colors={[colors.tealDeep, '#08574F']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
+          <Text style={styles.heroKicker}>VOTRE COMPAGNON CLINIQUE</Text>
+          <Text style={styles.heroTitle}>Décider plus vite.{`\n`}Vérifier plus sûrement.</Text>
+          <Text style={styles.heroText}>Scores validés, calculateurs et outils ECG réunis dans une interface pensée pour le terrain.</Text>
+          <View style={styles.offlinePill}>
+            <View style={styles.statusDot} />
+            <Text style={styles.offlineText}>Calculs disponibles hors ligne</Text>
+          </View>
+        </LinearGradient>
+      </Reveal>
 
       <Text style={styles.sectionLabel}>ACCÈS RAPIDES</Text>
-      <View style={styles.modules}>
+      <Reveal delay={70} style={styles.modules}>
         <ModuleCard
           title="Scores"
           text={`${clinicalRegistry.filter((tool) => tool.available).length} outils cliniques actifs et sourcés`}
@@ -76,36 +79,38 @@ export function HomeScreen({ onOpenTool, onBrowse, onScores, onEcg, onPremium }:
           iconBg={colors.violetSoft}
           onPress={onEcg}
         />
-      </View>
+      </Reveal>
 
-      <Pressable onPress={onPremium} style={({ pressed }) => [styles.premiumStrip, pressed && styles.pressed]}>
-        <View style={styles.premiumIcon}><Ionicons name="sparkles" size={18} color={colors.violet} /></View>
-        <View style={styles.premiumCopy}>
-          <Text style={styles.premiumTitle}>Medical Toolbox Premium</Text>
-          <Text style={styles.premiumText}>Plus d’outils, fonctions ECG avancées, historique et personnalisation.</Text>
-        </View>
-        <Ionicons name="chevron-forward" size={19} color={colors.violet} />
-      </Pressable>
+      <Reveal delay={130}>
+        <MotionSurface onPress={onPremium} accessibilityLabel="Découvrir Medical Toolbox Premium" style={styles.premiumStrip}>
+          <View style={styles.premiumIcon}><Ionicons name="sparkles" size={18} color={colors.violet} /></View>
+          <View style={styles.premiumCopy}>
+            <Text style={styles.premiumTitle}>Medical Toolbox Premium</Text>
+            <Text style={styles.premiumText}>Plus d’outils, fonctions ECG avancées, historique et personnalisation.</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={19} color={colors.violet} />
+        </MotionSurface>
+      </Reveal>
 
       {!!recent.length && (
-        <>
+        <Reveal delay={180}>
           <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Récemment utilisés</Text><Pressable onPress={onBrowse}><Text style={styles.link}>Tout voir</Text></Pressable></View>
           <View style={styles.list}>{recent.map((tool) => <ToolCard key={tool.id} tool={tool} onPress={() => onOpenTool(tool)} compact />)}</View>
-        </>
+        </Reveal>
       )}
 
       {!!favorites.length && (
-        <>
+        <Reveal delay={220}>
           <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Favoris</Text><Text style={styles.savedLabel}>{favorites.length} épinglé{favorites.length > 1 ? 's' : ''}</Text></View>
           <View style={styles.list}>{favorites.slice(0, 3).map((tool) => <ToolCard key={tool.id} tool={tool} onPress={() => onOpenTool(tool)} compact />)}</View>
-        </>
+        </Reveal>
       )}
 
       {!recent.length && (
-        <>
+        <Reveal delay={180}>
           <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>Pour commencer</Text><Pressable onPress={onScores}><Text style={styles.link}>Scores</Text></Pressable></View>
           <View style={styles.list}>{clinicalRegistry.slice(0, 3).map((tool) => <ToolCard key={tool.id} tool={tool} onPress={() => onOpenTool(tool)} compact />)}</View>
-        </>
+        </Reveal>
       )}
 
       <View style={styles.disclaimer}>
@@ -126,7 +131,7 @@ function ModuleCard({ title, text, badge, icon, iconColor, iconBg, onPress }: {
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.moduleCard, pressed && styles.pressed]}>
+    <MotionSurface onPress={onPress} accessibilityLabel={`Ouvrir ${title}`} style={styles.moduleCard}>
       <View style={[styles.moduleIcon, { backgroundColor: iconBg }]}><Ionicons name={icon} size={23} color={iconColor} /></View>
       <View style={styles.moduleBody}>
         <Text style={styles.moduleTitle}>{title}</Text>
@@ -136,7 +141,7 @@ function ModuleCard({ title, text, badge, icon, iconColor, iconBg, onPress }: {
         <View style={[styles.badge, badge === 'Premium' && styles.badgePremium]}><Text style={[styles.badgeText, badge === 'Premium' && styles.badgePremiumText]}>{badge}</Text></View>
         <Ionicons name="chevron-forward" size={18} color={colors.muted} />
       </View>
-    </Pressable>
+    </MotionSurface>
   );
 }
 
