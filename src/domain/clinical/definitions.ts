@@ -27,6 +27,21 @@ const definitions: CalculatorDefinition[] = [{
     { id: 'sex', label: 'Sexe féminin', shortLabel: 'Sc', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
   ],
 }, {
+  toolId: 'cha2ds2-va', min: 0, max: 8, resultHint: 'Le score aide à structurer le risque thromboembolique en fibrillation atriale ; la décision reste clinique et individualisée.',
+  ranges: [
+    { min: 0, max: 0, label: 'CHA₂DS₂-VA = 0' },
+    { min: 1, max: 1, label: 'CHA₂DS₂-VA = 1' },
+    { min: 2, max: 8, label: 'CHA₂DS₂-VA ≥ 2' },
+  ],
+  fields: [
+    { id: 'heartFailure', label: 'Insuffisance cardiaque', shortLabel: 'C', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'hypertension', label: 'Hypertension artérielle', shortLabel: 'H', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'age', label: 'Âge', shortLabel: 'A', options: [{ value: 0, label: 'Moins de 65 ans' }, { value: 1, label: '65 à 74 ans' }, { value: 2, label: '75 ans ou plus' }] },
+    { id: 'diabetes', label: 'Diabète', shortLabel: 'D', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'stroke', label: 'AVC, AIT ou embolie systémique antérieur', shortLabel: 'S₂', options: [{ value: 0, label: 'Non' }, { value: 2, label: 'Oui' }] },
+    { id: 'vascular', label: 'Maladie vasculaire', shortLabel: 'V', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+  ],
+}, {
   toolId: 'curb-65', min: 0, max: 5, resultHint: 'Interpréter avec le contexte clinique et les protocoles locaux.',
   fields: [
     { id: 'confusion', label: 'Confusion nouvelle', shortLabel: 'C', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
@@ -46,6 +61,47 @@ const definitions: CalculatorDefinition[] = [{
     { id: 'previous', label: 'Antécédent de TVP ou EP', shortLabel: 'ATCD', options: [{ value: 0, label: 'Non' }, { value: 1.5, label: 'Oui' }] },
     { id: 'hemoptysis', label: 'Hémoptysie', shortLabel: 'Hém', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
     { id: 'malignancy', label: 'Cancer actif', shortLabel: 'K', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+  ],
+}, {
+  toolId: 'qsofa', min: 0, max: 3, resultHint: 'qSOFA n’est pas un diagnostic de sepsis et ne doit pas être utilisé seul comme outil de dépistage.',
+  ranges: [
+    { min: 0, max: 1, label: 'qSOFA < 2' },
+    { min: 2, max: 3, label: 'qSOFA ≥ 2 : risque accru de mauvaise évolution chez un adulte avec infection suspectée' },
+  ],
+  fields: [
+    { id: 'respiratoryRate', label: 'Fréquence respiratoire ≥ 22/min', shortLabel: 'FR', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'bloodPressure', label: 'Pression artérielle systolique ≤ 100 mmHg', shortLabel: 'PAS', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'mentation', label: 'Altération de l’état mental', shortLabel: 'Mental', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+  ],
+}, {
+  toolId: 'perc', min: 0, max: 8, resultHint: 'PERC ne s’applique qu’après identification d’une faible probabilité clinique pré-test d’EP.',
+  ranges: [
+    { min: 0, max: 0, label: 'PERC négatif : aucun critère positif' },
+    { min: 1, max: 8, label: 'PERC positif : l’EP n’est pas exclue par cette règle' },
+  ],
+  fields: [
+    { id: 'age', label: 'Âge ≥ 50 ans', shortLabel: 'Âge', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'heartRate', label: 'Fréquence cardiaque ≥ 100/min', shortLabel: 'FC', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'oxygen', label: 'SpO₂ < 95 % en air ambiant', shortLabel: 'SpO₂', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'unilateralLegSwelling', label: 'Œdème unilatéral d’un membre inférieur', shortLabel: 'OMI', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'hemoptysis', label: 'Hémoptysie', shortLabel: 'Hém', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'recentSurgeryTrauma', label: 'Chirurgie ou traumatisme récent nécessitant hospitalisation, dans les 4 semaines', shortLabel: 'Chir/Trauma', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'previousVte', label: 'Antécédent de TVP ou EP', shortLabel: 'ATCD', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'estrogen', label: 'Traitement estrogénique', shortLabel: 'Œst', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+  ],
+}, {
+  toolId: 'heart-score', min: 0, max: 10, resultHint: 'Le HEART score conventionnel doit être interprété avec le protocole local de douleur thoracique et le dosage de troponine utilisé.',
+  ranges: [
+    { min: 0, max: 3, label: 'Risque faible (HEART 0–3)' },
+    { min: 4, max: 6, label: 'Risque intermédiaire (HEART 4–6)' },
+    { min: 7, max: 10, label: 'Risque élevé (HEART 7–10)' },
+  ],
+  fields: [
+    { id: 'history', label: 'Anamnèse', shortLabel: 'H', options: [{ value: 0, label: 'Peu ou non suspecte' }, { value: 1, label: 'Modérément suspecte' }, { value: 2, label: 'Très suspecte' }] },
+    { id: 'ecg', label: 'ECG', shortLabel: 'E', options: [{ value: 0, label: 'Normal' }, { value: 1, label: 'Troubles non spécifiques de repolarisation' }, { value: 2, label: 'Sous-décalage ST significatif' }] },
+    { id: 'age', label: 'Âge', shortLabel: 'A', options: [{ value: 0, label: 'Moins de 45 ans' }, { value: 1, label: '45 à 64 ans' }, { value: 2, label: '65 ans ou plus' }] },
+    { id: 'riskFactors', label: 'Facteurs de risque cardiovasculaire', shortLabel: 'R', options: [{ value: 0, label: 'Aucun facteur connu' }, { value: 1, label: '1 à 2 facteurs' }, { value: 2, label: '≥ 3 facteurs ou antécédent athéroscléreux' }] },
+    { id: 'troponin', label: 'Troponine par rapport à la limite supérieure de la normale', shortLabel: 'T', options: [{ value: 0, label: '≤ limite normale' }, { value: 1, label: '> 1 à < 3 × la limite normale' }, { value: 2, label: '≥ 3 × la limite normale' }] },
   ],
 }];
 
