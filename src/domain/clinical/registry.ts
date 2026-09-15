@@ -28,7 +28,15 @@ export const clinicalRegistry: ClinicalTool[] = [
     limitations: ['Un score faible ne permet pas de rassurer à lui seul ni d’exclure un mécanisme à haut risque.', 'Ne doit pas retarder l’imagerie, l’évaluation vasculaire ou l’avis spécialisé lorsque l’AIT est suspecté.', 'Le score n’est pas conçu pour confirmer le diagnostic d’AIT.'],
     sources: [{ title: 'Validation and refinement of scores to predict very early stroke risk after transient ischaemic attack', citation: 'Johnston SC et al. Lancet. 2007;369(9558). PMID: 17258668.', url: 'https://pubmed.ncbi.nlm.nih.gov/17258668/', accessedAt: '2026-09-15' }],
   },
-  { id: 'ckd-epi-2021', name: 'DFG estimé CKD-EPI', acronym: 'CKD-EPI', specialty: 'Néphrologie', summary: 'Estimer le débit de filtration glomérulaire chez l’adulte.', keywords: ['rein', 'créatinine', 'dfg', 'egfr'], risk: 'B', status: 'review_due', version: '0.1.0', reviewedAt: '—', duration: '1 min', icon: 'water-outline', color: '#246BFD', surfaceColor: '#E7EEFF', available: false, indications: [], limitations: [], sources: [] },
+  {
+    id: 'ckd-epi-2021', name: 'DFG estimé CKD-EPI', acronym: 'CKD-EPI 2021', specialty: 'Néphrologie',
+    summary: 'Estimer le débit de filtration glomérulaire chez l’adulte avec l’équation CKD-EPI créatinine 2021 sans critère de race.',
+    keywords: ['rein', 'créatinine', 'dfg', 'egfr', 'ckd-epi', 'néphrologie'], risk: 'B', status: 'validated',
+    version: '1.0.0', reviewedAt: '2026-09-15', duration: '1 min', icon: 'water-outline', color: '#246BFD', surfaceColor: '#E7EEFF', available: true,
+    indications: ['Estimation du DFG chez l’adulte âgé de 18 ans ou plus à partir d’une créatinine sérique standardisée.'],
+    limitations: ['Le DFG estimé n’est pas une mesure directe du DFG.', 'Interpréter avec prudence lorsque la créatinine n’est pas à l’état stable, notamment en insuffisance rénale aiguë.', 'Les situations modifiant fortement la production de créatinine peuvent réduire la précision ; une estimation avec cystatine C peut être utile selon le contexte.', 'Une catégorie de DFG isolée ne suffit pas à diagnostiquer une maladie rénale chronique : tenir compte de la chronicité et de l’albuminurie.'],
+    sources: [{ title: 'New Creatinine- and Cystatin C-Based Equations to Estimate GFR without Race', citation: 'Inker LA et al. N Engl J Med. 2021. PMID: 34554658.', url: 'https://pubmed.ncbi.nlm.nih.gov/34554658/', accessedAt: '2026-09-15' }, { title: '2021 CKD-EPI Creatinine Equation', citation: 'National Institute of Diabetes and Digestive and Kidney Diseases (NIDDK).', url: 'https://www.niddk.nih.gov/research-funding/research-programs/kidney-clinical-research-epidemiology/laboratory/glomerular-filtration-rate-equations/adults', accessedAt: '2026-09-15' }],
+  },
   {
     id: 'wells-pe', name: 'Score de Wells — EP', acronym: 'Wells EP', specialty: 'Urgences', summary: 'Stratifier la probabilité clinique pré-test d’embolie pulmonaire.', keywords: ['embolie', 'pulmonaire', 'wells', 'ep', 'tvp'], risk: 'B', status: 'validated', version: '1.0.0', reviewedAt: '2026-09-14', duration: '2 min', icon: 'fitness-outline', color: '#087B72', surfaceColor: '#DDF4EC', available: true,
     indications: ['Estimation de la probabilité clinique pré-test d’EP chez un patient évalué pour une suspicion d’EP.'],
