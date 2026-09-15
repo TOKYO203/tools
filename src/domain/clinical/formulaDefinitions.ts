@@ -143,7 +143,64 @@ const psiPort: FormulaDefinition = {
   },
 };
 
-export const formulaDefinitions: FormulaDefinition[] = [ckdEpi2021, psiPort];
+const bisap: FormulaDefinition = {
+  toolId: 'bisap',
+  resultLabel: 'BISAP',
+  resultHint: 'Le BISAP est un score pronostique précoce de pancréatite aiguë. Il ne remplace pas la surveillance clinique, la recherche de défaillance d’organe ni l’imagerie lorsqu’elle est indiquée.',
+  fields: [
+    { kind: 'choice', id: 'bun', label: 'Urée sanguine (BUN) > 25 mg/dL', shortLabel: 'BUN', options: yesNo },
+    { kind: 'choice', id: 'mental', label: 'Altération de l’état mental', shortLabel: 'Mental', options: yesNo },
+    { kind: 'choice', id: 'sirs', label: 'Syndrome de réponse inflammatoire systémique (SIRS)', shortLabel: 'SIRS', options: yesNo },
+    { kind: 'choice', id: 'age', label: 'Âge > 60 ans', shortLabel: 'Âge', options: yesNo },
+    { kind: 'choice', id: 'pleuralEffusion', label: 'Épanchement pleural', shortLabel: 'Plèvre', options: yesNo },
+  ],
+  calculate(values) {
+    const score = sumFields(values, ['bun', 'mental', 'sirs', 'age', 'pleuralEffusion']);
+    return { value: score, display: `${score} / 5`, interpretation: score >= 3 ? 'Score BISAP élevé : risque pronostique accru.' : 'Score BISAP 0–2 : risque pronostique plus faible dans la cohorte de dérivation/validation.' };
+  },
+};
+
+const alvarado: FormulaDefinition = {
+  toolId: 'alvarado',
+  resultLabel: 'ALVARADO',
+  resultHint: 'Le score d’Alvarado aide à stratifier une suspicion d’appendicite aiguë. Il ne confirme ni n’exclut à lui seul le diagnostic.',
+  fields: [
+    { kind: 'choice', id: 'migration', label: 'Migration de la douleur vers la fosse iliaque droite', shortLabel: 'Migration', options: yesNo },
+    { kind: 'choice', id: 'anorexia', label: 'Anorexie', shortLabel: 'Anorexie', options: yesNo },
+    { kind: 'choice', id: 'nausea', label: 'Nausées ou vomissements', shortLabel: 'N/V', options: yesNo },
+    { kind: 'choice', id: 'tenderness', label: 'Sensibilité / douleur provoquée en fosse iliaque droite', shortLabel: 'FID', options: [{ value: 0, label: 'Non' }, { value: 2, label: 'Oui' }] },
+    { kind: 'choice', id: 'rebound', label: 'Douleur à la décompression / rebond', shortLabel: 'Rebond', options: yesNo },
+    { kind: 'choice', id: 'fever', label: 'Température élevée', shortLabel: 'Fièvre', options: yesNo },
+    { kind: 'choice', id: 'leukocytosis', label: 'Leucocytose', shortLabel: 'GB', options: [{ value: 0, label: 'Non' }, { value: 2, label: 'Oui' }] },
+    { kind: 'choice', id: 'leftShift', label: 'Neutrophilie / déplacement à gauche', shortLabel: 'PNN', options: yesNo },
+  ],
+  calculate(values) {
+    const score = sumFields(values, ['migration', 'anorexia', 'nausea', 'tenderness', 'rebound', 'fever', 'leukocytosis', 'leftShift']);
+    const interpretation = score <= 4 ? 'Faible probabilité selon les bandes usuelles du score.' : score <= 6 ? 'Probabilité intermédiaire selon les bandes usuelles du score.' : 'Probabilité élevée selon les bandes usuelles du score.';
+    return { value: score, display: `${score} / 10`, interpretation };
+  },
+};
+
+const timiUaNstemi: FormulaDefinition = {
+  toolId: 'timi-ua-nstemi',
+  resultLabel: 'TIMI UA/NSTEMI',
+  resultHint: 'Le TIMI UA/NSTEMI est un score pronostique historique. Il doit être replacé dans les stratégies contemporaines de syndrome coronarien aigu et les protocoles locaux.',
+  fields: [
+    { kind: 'choice', id: 'age', label: 'Âge ≥ 65 ans', shortLabel: 'Âge', options: yesNo },
+    { kind: 'choice', id: 'riskFactors', label: '≥ 3 facteurs de risque de maladie coronarienne', shortLabel: 'FDR', options: yesNo },
+    { kind: 'choice', id: 'stenosis', label: 'Sténose coronaire connue ≥ 50 %', shortLabel: 'Sténose', options: yesNo },
+    { kind: 'choice', id: 'stDeviation', label: 'Déviation du segment ST à l’ECG initial', shortLabel: 'ST', options: yesNo },
+    { kind: 'choice', id: 'angina', label: '≥ 2 épisodes angineux dans les 24 dernières heures', shortLabel: 'Angor', options: yesNo },
+    { kind: 'choice', id: 'aspirin', label: 'Prise d’aspirine dans les 7 derniers jours', shortLabel: 'AAS', options: yesNo },
+    { kind: 'choice', id: 'markers', label: 'Biomarqueurs cardiaques élevés', shortLabel: 'Bio', options: yesNo },
+  ],
+  calculate(values) {
+    const score = sumFields(values, ['age', 'riskFactors', 'stenosis', 'stDeviation', 'angina', 'aspirin', 'markers']);
+    return { value: score, display: `${score} / 7`, interpretation: 'Dans la cohorte originale, le risque d’événements augmentait progressivement avec le score.' };
+  },
+};
+
+export const formulaDefinitions: FormulaDefinition[] = [ckdEpi2021, psiPort, bisap, alvarado, timiUaNstemi];
 
 export function getFormulaDefinition(toolId: string) {
   return formulaDefinitions.find((definition) => definition.toolId === toolId);
@@ -171,6 +228,10 @@ export function calculateFormula(definition: FormulaDefinition, values: FormulaV
 function required(value: number | null | undefined, id: string) {
   if (value === null || value === undefined || !Number.isFinite(value)) throw new Error(`Valeur invalide : ${id}`);
   return value;
+}
+
+function sumFields(values: FormulaValues, ids: string[]) {
+  return ids.reduce((sum, id) => sum + required(values[id], id), 0);
 }
 
 function classifyGfr(value: number) {
