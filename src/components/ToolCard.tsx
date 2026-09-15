@@ -1,15 +1,15 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { ClinicalTool } from '../domain/clinical/types';
 import { colors, radius, shadow } from '../theme/tokens';
+import { MotionSurface } from './MotionSurface';
 
 export function ToolCard({ tool, onPress, compact = false }: { tool: ClinicalTool; onPress: () => void; compact?: boolean }) {
   return (
-    <Pressable
+    <MotionSurface
       onPress={onPress}
-      style={({ pressed }) => [styles.card, compact && styles.compact, pressed && styles.pressed]}
-      accessibilityRole="button"
       accessibilityLabel={`Ouvrir ${tool.name}`}
+      style={[styles.card, compact && styles.compact]}
     >
       <View style={[styles.icon, { backgroundColor: tool.surfaceColor }]}>
         <Ionicons name={tool.icon as keyof typeof Ionicons.glyphMap} size={compact ? 20 : 22} color={tool.color} />
@@ -23,7 +23,7 @@ export function ToolCard({ tool, onPress, compact = false }: { tool: ClinicalToo
         {tool.available ? <View style={styles.offline}><Text style={styles.offlineText}>VALIDÉ</Text></View> : <Text style={styles.soon}>Bientôt</Text>}
         <Ionicons name="chevron-forward" size={18} color="#8D9A97" />
       </View>
-    </Pressable>
+    </MotionSurface>
   );
 }
 
@@ -41,7 +41,6 @@ const styles = StyleSheet.create({
     ...shadow,
   },
   compact: { minHeight: 82, paddingVertical: 13, shadowOpacity: 0, elevation: 0 },
-  pressed: { opacity: 0.76, transform: [{ scale: 0.995 }] },
   icon: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   body: { flex: 1, gap: 3 },
   name: { fontSize: 15, lineHeight: 19, fontWeight: '900', color: colors.ink },
