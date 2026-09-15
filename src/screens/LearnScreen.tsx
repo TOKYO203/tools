@@ -14,17 +14,46 @@ const steps = [
   { short: 'ST-T', title: 'Morphologie & repolarisation', text: 'Analyser QRS, progression de R, ondes Q, segment ST et ondes T.' },
 ];
 
-const measurementTools: { id: string; icon: keyof typeof Ionicons.glyphMap; title: string; text: string; color: string; bg: string; enabled: boolean }[] = [
-  { id: 'rate', icon: 'speedometer-outline', title: 'Fréquence', text: 'Calculer la FC', color: colors.teal, bg: colors.mint, enabled: false },
+type ActiveTool = 'rate' | 'qtc' | 'axis' | null;
+type RateMode = 'regular' | 'irregular';
+type RateUnit = 'large' | 'small';
+type Polarity = 'positive' | 'negative' | 'isoelectric';
+
+const measurementTools: { id: Exclude<ActiveTool, null> | 'intervals'; icon: keyof typeof Ionicons.glyphMap; title: string; text: string; color: string; bg: string; enabled: boolean }[] = [
+  { id: 'rate', icon: 'speedometer-outline', title: 'Fréquence', text: 'Calculer la FC', color: colors.teal, bg: colors.mint, enabled: true },
   { id: 'qtc', icon: 'timer-outline', title: 'QT / QTc', text: 'Bazett · Fridericia', color: colors.violet, bg: colors.violetSoft, enabled: true },
-  { id: 'axis', icon: 'navigate-outline', title: 'Axe électrique', text: 'Orientation QRS', color: colors.blue, bg: colors.blueSoft, enabled: false },
+  { id: 'axis', icon: 'navigate-outline', title: 'Axe électrique', text: 'Orientation QRS', color: colors.blue, bg: colors.blueSoft, enabled: true },
   { id: 'intervals', icon: 'resize-outline', title: 'Intervalles', text: 'PR · QRS · QT', color: colors.teal, bg: colors.mint, enabled: false },
 ];
 
 export function LearnScreen() {
-  const [activeTool, setActiveTool] = useState<string | null>(null);
+  const [activeTool, setActiveTool] = useState<ActiveTool>(null);
+
+  const [rateMode, setRateMode] = useState<RateMode>('regular');
+  const [rateUnit, setRateUnit] = useState<RateUnit>('large');
+  const [rateText, setRateText] = useState('');
+
   const [qtText, setQtText] = useState('');
   const [hrText, setHrText] = useState('');
+
+  const [axisI, setAxisI] = useState<Polarity | null>(null);
+  const [axisAvf, setAxisAvf] = useState<Polarity | null>(null);
+  const [axisII, setAxisII] = useState<Polarity | null>(null);
+
+  const rate = useMemo(() => {
+    const value = Number(rateText.trim().replace(',', '.'));
+    if (!Number.isFinite(value) || value <= 0) return null;
+    if (rateMode === 'irregular') {
+      if (value < 1 || value > 50) return null;
+      return Math.round(value * 6);
+    }
+    if (rateUnit === 'large') {
+      if (value < 0.5 || value > 30) return null;
+      return Math.round(300 / value);
+    }
+    if (value < 2.5 || value > 150) return null;
+    return Math.round(1500 / value);
+  }, [rateMode, rateText, rateUnit]);
 
   const qtc = useMemo(() => {
     const qt = Number(qtText.trim().replace(',', '.'));
@@ -34,8 +63,15 @@ export function LearnScreen() {
     const rrSeconds = 60 / heartRate;
     const bazett = Math.round(qt / Math.sqrt(rrSeconds));
     const fridericia = Math.round(qt / Math.cbrt(rrSeconds));
-    return { qt, heartRate, rrSeconds, bazett, fridericia };
+    return { rrSeconds, bazett, fridericia };
   }, [hrText, qtText]);
+
+  const axis = useMemo(() => classifyAxis(axisI, axisAvf, axisII), [axisI, axisAvf, axisII]);
+
+  const openTool = (id: string, enabled: boolean) => {
+    if (!enabled || id === 'intervals') return;
+    setActiveTool((current) => current === id ? null : id as ActiveTool);
+  };
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -74,7 +110,7 @@ export function LearnScreen() {
         {measurementTools.map((tool) => (
           <MotionSurface
             key={tool.id}
-            onPress={tool.enabled ? () => setActiveTool((current) => current === tool.id ? null : tool.id) : undefined}
+            onPress={tool.enabled ? () => openTool(tool.id, tool.enabled) : undefined}
             disabled={!tool.enabled}
             accessibilityLabel={tool.enabled ? `Ouvrir ${tool.title}` : `${tool.title}, bientôt disponible`}
             style={[styles.measureCard, activeTool === tool.id && styles.measureCardActive]}
@@ -89,16 +125,51 @@ export function LearnScreen() {
         ))}
       </Reveal>
 
-      {activeTool === 'qtc' && (
-        <Reveal style={styles.qtcCard}>
-          <View style={styles.qtcHeader}>
-            <View>
-              <Text style={styles.qtcEyebrow}>CALCUL ECG</Text>
-              <Text style={styles.qtcTitle}>QT corrigé</Text>
-            </View>
-            <View style={styles.liveBadge}><Text style={styles.liveText}>ACTIF</Text></View>
+      {activeTool === 'rate' && (
+        <Reveal style={styles.toolPanel}>
+          <PanelHeader icon="speedometer-outline" eyebrow="CALCUL ECG" title="Fréquence cardiaque" color={colors.teal} bg={colors.mint} />
+          <Text style={styles.panelIntro}>À 25 mm/s, choisissez une méthode adaptée au rythme. Pour un rythme irrégulier, la méthode sur 10 secondes donne une estimation moyenne.</Text>
+
+          <Segmented
+            options={[{ id: 'regular', label: 'Rythme régulier' }, { id: 'irregular', label: 'Rythme irrégulier' }]}
+            value={rateMode}
+            onChange={(value) => { setRateMode(value as RateMode); setRateText(''); }}
+            activeColor={colors.tealDark}
+          />
+
+          {rateMode === 'regular' && (
+            <Segmented
+              options={[{ id: 'large', label: 'Grands carreaux' }, { id: 'small', label: 'Petits carreaux' }]}
+              value={rateUnit}
+              onChange={(value) => { setRateUnit(value as RateUnit); setRateText(''); }}
+              activeColor={colors.teal}
+            />
+          )}
+
+          <Text style={styles.inputLabel}>{rateMode === 'irregular' ? 'Nombre de QRS sur 10 secondes' : `Nombre de ${rateUnit === 'large' ? 'grands' : 'petits'} carreaux entre deux ondes R`}</Text>
+          <View style={styles.singleInputWrap}>
+            <TextInput value={rateText} onChangeText={setRateText} keyboardType="decimal-pad" placeholder={rateMode === 'irregular' ? 'Ex. 12' : rateUnit === 'large' ? 'Ex. 4' : 'Ex. 20'} placeholderTextColor={colors.muted} style={styles.input} />
+            <Text style={[styles.unit, { color: colors.teal }]}>{rateMode === 'irregular' ? 'QRS' : 'carreaux'}</Text>
           </View>
-          <Text style={styles.qtcIntro}>Saisissez le QT mesuré et la fréquence cardiaque. L’outil calcule simultanément QTc Bazett et QTc Fridericia.</Text>
+
+          {rate !== null ? (
+            <View style={[styles.resultPanel, { backgroundColor: colors.tealDark }]}>
+              <View style={styles.resultColumn}><Text style={styles.resultLabel}>FRÉQUENCE ESTIMÉE</Text><Text style={styles.resultValue}>{rate}<Text style={styles.resultUnit}> bpm</Text></Text></View>
+              <Text style={styles.rrText}>{rateMode === 'irregular' ? 'Méthode : QRS sur 10 s × 6' : `Méthode : ${rateUnit === 'large' ? '300 ÷ grands carreaux' : '1500 ÷ petits carreaux'}`}</Text>
+            </View>
+          ) : (
+            <Pending color={colors.teal} bg={colors.mint} text={rateMode === 'irregular' ? 'Comptez les QRS sur une bande de 10 secondes.' : 'Renseignez l’intervalle R–R en carreaux sur un tracé à 25 mm/s.'} />
+          )}
+
+          <View style={styles.cautionBox}><Ionicons name="warning-outline" size={18} color={colors.amber} /><Text style={styles.cautionText}>Vérifiez toujours la vitesse du papier. Les formules 300/1500 supposent 25 mm/s. En cas de rythme très irrégulier, une seule distance R–R n’est pas représentative.</Text></View>
+          <Pressable onPress={() => Linking.openURL('https://litfl.com/ecg-rate-interpretation/')} style={styles.sourceRow}><Ionicons name="library-outline" size={18} color={colors.teal} /><View style={styles.sourceCopy}><Text style={styles.sourceTitle}>Référence de méthode</Text><Text style={styles.sourceText}>Calcul de fréquence ECG à 25 mm/s : grands carreaux, petits carreaux et bande de 10 secondes.</Text></View><Ionicons name="open-outline" size={16} color={colors.muted} /></Pressable>
+        </Reveal>
+      )}
+
+      {activeTool === 'qtc' && (
+        <Reveal style={styles.toolPanel}>
+          <PanelHeader icon="timer-outline" eyebrow="CALCUL ECG" title="QT corrigé" color={colors.violet} bg={colors.violetSoft} />
+          <Text style={styles.panelIntro}>Saisissez le QT mesuré et la fréquence cardiaque. L’outil calcule simultanément QTc Bazett et QTc Fridericia.</Text>
 
           <View style={styles.inputRow}>
             <View style={styles.inputBlock}>
@@ -119,61 +190,84 @@ export function LearnScreen() {
               <Text style={styles.rrText}>RR calculé : {qtc.rrSeconds.toFixed(2)} s</Text>
             </View>
           ) : (
-            <View style={styles.pendingPanel}><Ionicons name="information-circle-outline" size={18} color={colors.violet} /><Text style={styles.pendingText}>Renseignez un QT entre 150–700 ms et une fréquence entre 20–250 bpm.</Text></View>
+            <Pending color={colors.violet} bg={colors.violetSoft} text="Renseignez un QT entre 150–700 ms et une fréquence entre 20–250 bpm." />
           )}
 
-          <View style={styles.formulaBox}>
-            <Text style={styles.formulaTitle}>Formules affichées</Text>
-            <Text style={styles.formulaText}>Bazett : QTc = QT / √RR{`\n`}Fridericia : QTc = QT / ∛RR</Text>
-          </View>
+          <View style={styles.formulaBox}><Text style={styles.formulaTitle}>Formules affichées</Text><Text style={styles.formulaText}>Bazett : QTc = QT / √RR{`\n`}Fridericia : QTc = QT / ∛RR</Text></View>
+          <View style={styles.cautionBox}><Ionicons name="warning-outline" size={18} color={colors.amber} /><Text style={styles.cautionText}>La correction dépend de la fréquence et du contexte. Les formules simples peuvent être moins fiables à fréquence extrême, en cas de forte variabilité RR ou si la fin de l’onde T est mal définie.</Text></View>
+          <Pressable onPress={() => Linking.openURL('https://pubmed.ncbi.nlm.nih.gov/19228821/')} style={styles.sourceRow}><Ionicons name="library-outline" size={18} color={colors.violet} /><View style={styles.sourceCopy}><Text style={styles.sourceTitle}>Source ECG</Text><Text style={styles.sourceText}>AHA/ACCF/HRS — recommandations sur le QT et la correction selon la fréquence.</Text></View><Ionicons name="open-outline" size={16} color={colors.muted} /></Pressable>
+        </Reveal>
+      )}
 
-          <View style={styles.cautionBox}>
-            <Ionicons name="warning-outline" size={18} color={colors.amber} />
-            <Text style={styles.cautionText}>La correction dépend de la fréquence et du contexte. Les formules simples peuvent être moins fiables à fréquence extrême, en cas de forte variabilité RR ou si la fin de l’onde T est mal définie. Ne pas interpréter un seuil isolé hors contexte.</Text>
-          </View>
+      {activeTool === 'axis' && (
+        <Reveal style={styles.toolPanel}>
+          <PanelHeader icon="navigate-outline" eyebrow="ASSISTANT ECG" title="Axe QRS frontal" color={colors.blue} bg={colors.blueSoft} />
+          <Text style={styles.panelIntro}>Indiquez la polarité dominante du QRS en I et aVF. Si I est positif et aVF négatif, la dérivation II affine la distinction entre axe adulte normal gauche et déviation axiale gauche.</Text>
 
-          <Pressable onPress={() => Linking.openURL('https://pubmed.ncbi.nlm.nih.gov/19228821/')} style={styles.sourceRow}>
-            <Ionicons name="library-outline" size={18} color={colors.violet} />
-            <View style={styles.sourceCopy}><Text style={styles.sourceTitle}>Source ECG</Text><Text style={styles.sourceText}>AHA/ACCF/HRS — recommandations sur le QT et la correction selon la fréquence.</Text></View>
-            <Ionicons name="open-outline" size={16} color={colors.muted} />
-          </Pressable>
+          <PolaritySelector title="Dérivation I" value={axisI} onChange={setAxisI} />
+          <PolaritySelector title="Dérivation aVF" value={axisAvf} onChange={setAxisAvf} />
+          {axisI === 'positive' && axisAvf === 'negative' && <PolaritySelector title="Dérivation II" value={axisII} onChange={setAxisII} />}
+
+          {axis ? (
+            <View style={[styles.axisResult, { backgroundColor: axis.color }]}>
+              <Text style={styles.axisResultLabel}>ESTIMATION</Text>
+              <Text style={styles.axisResultTitle}>{axis.title}</Text>
+              <Text style={styles.axisResultText}>{axis.detail}</Text>
+            </View>
+          ) : (
+            <Pending color={colors.blue} bg={colors.blueSoft} text="Sélectionnez explicitement la polarité du QRS dans les dérivations requises." />
+          )}
+
+          <View style={styles.cautionBox}><Ionicons name="warning-outline" size={18} color={colors.amber} /><Text style={styles.cautionText}>Assistant adulte de repérage rapide, pas une mesure au degré près. Un QRS isoélectrique nécessite une analyse hexaxiale/perpendiculaire plus précise. Vérifiez aussi un éventuel mauvais placement des électrodes si l’axe paraît inattendu.</Text></View>
+          <Pressable onPress={() => Linking.openURL('https://www.ahajournals.org/doi/10.1161/CIRCULATIONAHA.108.191095')} style={styles.sourceRow}><Ionicons name="library-outline" size={18} color={colors.blue} /><View style={styles.sourceCopy}><Text style={styles.sourceTitle}>Source vérifiée</Text><Text style={styles.sourceText}>AHA/ACCF/HRS — axe QRS frontal adulte : normal −30° à +90° et définitions des déviations.</Text></View><Ionicons name="open-outline" size={16} color={colors.muted} /></Pressable>
         </Reveal>
       )}
 
       <View style={styles.methodCard}>
-        <View style={styles.methodHeader}>
-          <View style={styles.methodCopy}>
-            <Text style={styles.methodTitle}>Lecture structurée</Text>
-            <Text style={styles.methodSubtitle}>6 étapes, toujours dans le même ordre</Text>
-          </View>
-          <View style={styles.guideBadge}><Text style={styles.guideText}>Guide</Text></View>
-        </View>
-        <View style={styles.methodChips}>
-          {steps.map((step) => <View key={step.short} style={styles.methodChip}><Text style={styles.methodChipText}>{step.short}</Text></View>)}
-        </View>
+        <View style={styles.methodHeader}><View style={styles.methodCopy}><Text style={styles.methodTitle}>Lecture structurée</Text><Text style={styles.methodSubtitle}>6 étapes, toujours dans le même ordre</Text></View><View style={styles.guideBadge}><Text style={styles.guideText}>Guide</Text></View></View>
+        <View style={styles.methodChips}>{steps.map((step) => <View key={step.short} style={styles.methodChip}><Text style={styles.methodChipText}>{step.short}</Text></View>)}</View>
       </View>
 
       <Text style={styles.sectionLabel}>MÉTHODE DÉTAILLÉE</Text>
-      <View style={styles.stepsList}>
-        {steps.map((step, index) => (
-          <View key={step.title} style={styles.stepCard}>
-            <View style={styles.stepNumber}><Text style={styles.stepNumberText}>{index + 1}</Text></View>
-            <View style={styles.stepBody}><Text style={styles.stepTitle}>{step.title}</Text><Text style={styles.stepText}>{step.text}</Text></View>
-          </View>
-        ))}
-      </View>
+      <View style={styles.stepsList}>{steps.map((step, index) => <View key={step.title} style={styles.stepCard}><View style={styles.stepNumber}><Text style={styles.stepNumberText}>{index + 1}</Text></View><View style={styles.stepBody}><Text style={styles.stepTitle}>{step.title}</Text><Text style={styles.stepText}>{step.text}</Text></View></View>)}</View>
 
-      <View style={styles.explainable}>
-        <Ionicons name="sparkles" size={17} color={colors.violet} />
-        <Text style={styles.explainableText}>Les fonctions ECG avancées restent explicables : chaque mesure affiche la formule, le repère ou le critère utilisé.</Text>
-      </View>
-
-      <View style={styles.disclaimer}>
-        <Ionicons name="shield-checkmark-outline" size={18} color={colors.teal} />
-        <Text style={styles.disclaimerText}>Référence pédagogique. Ne remplace pas l’interprétation médicale, la comparaison aux tracés antérieurs ni les recommandations locales.</Text>
-      </View>
+      <View style={styles.explainable}><Ionicons name="sparkles" size={17} color={colors.violet} /><Text style={styles.explainableText}>Les fonctions ECG avancées restent explicables : chaque mesure affiche la formule, le repère ou le critère utilisé.</Text></View>
+      <View style={styles.disclaimer}><Ionicons name="shield-checkmark-outline" size={18} color={colors.teal} /><Text style={styles.disclaimerText}>Référence pédagogique. Ne remplace pas l’interprétation médicale, la comparaison aux tracés antérieurs ni les recommandations locales.</Text></View>
     </ScrollView>
   );
+}
+
+function PanelHeader({ icon, eyebrow, title, color, bg }: { icon: keyof typeof Ionicons.glyphMap; eyebrow: string; title: string; color: string; bg: string }) {
+  return <View style={styles.panelHeader}><View style={[styles.panelIcon, { backgroundColor: bg }]}><Ionicons name={icon} size={20} color={color} /></View><View style={styles.panelHeaderCopy}><Text style={[styles.panelEyebrow, { color }]}>{eyebrow}</Text><Text style={styles.panelTitle}>{title}</Text></View><View style={[styles.liveBadge, { backgroundColor: bg }]}><Text style={[styles.liveText, { color }]}>ACTIF</Text></View></View>;
+}
+
+function Pending({ color, bg, text }: { color: string; bg: string; text: string }) {
+  return <View style={[styles.pendingPanel, { backgroundColor: bg }]}><Ionicons name="information-circle-outline" size={18} color={color} /><Text style={styles.pendingText}>{text}</Text></View>;
+}
+
+function Segmented({ options, value, onChange, activeColor }: { options: { id: string; label: string }[]; value: string; onChange: (value: string) => void; activeColor: string }) {
+  return <View style={styles.segmented}>{options.map((option) => { const active = option.id === value; return <Pressable key={option.id} onPress={() => onChange(option.id)} style={[styles.segment, active && { backgroundColor: activeColor }]}><Text style={[styles.segmentText, active && styles.segmentTextActive]}>{option.label}</Text></Pressable>; })}</View>;
+}
+
+function PolaritySelector({ title, value, onChange }: { title: string; value: Polarity | null; onChange: (value: Polarity) => void }) {
+  const options: { value: Polarity; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+    { value: 'positive', label: 'Positif', icon: 'add-outline' },
+    { value: 'negative', label: 'Négatif', icon: 'remove-outline' },
+    { value: 'isoelectric', label: 'Isoélectrique', icon: 'swap-horizontal-outline' },
+  ];
+  return <View style={styles.polarityBlock}><Text style={styles.inputLabel}>{title}</Text><View style={styles.polarityRow}>{options.map((option) => { const active = value === option.value; return <Pressable key={option.value} onPress={() => onChange(option.value)} style={[styles.polarityOption, active && styles.polarityOptionActive]}><Ionicons name={option.icon} size={17} color={active ? colors.white : colors.blue} /><Text style={[styles.polarityText, active && styles.polarityTextActive]}>{option.label}</Text></Pressable>; })}</View></View>;
+}
+
+function classifyAxis(leadI: Polarity | null, avf: Polarity | null, leadII: Polarity | null): { title: string; detail: string; color: string } | null {
+  if (!leadI || !avf) return null;
+  if (leadI === 'isoelectric' || avf === 'isoelectric') return { title: 'Axe à préciser', detail: 'Une dérivation principale est isoélectrique. La méthode des quadrants ne suffit pas : rechercher la dérivation la plus isoélectrique et son axe perpendiculaire.', color: colors.violetDeep };
+  if (leadI === 'positive' && avf === 'positive') return { title: 'Axe normal', detail: 'Quadrant estimé entre 0° et +90°.', color: colors.tealDark };
+  if (leadI === 'negative' && avf === 'positive') return { title: 'Déviation axiale droite', detail: 'Quadrant estimé entre +90° et +180°.', color: '#31589D' };
+  if (leadI === 'negative' && avf === 'negative') return { title: 'Axe extrême', detail: 'Quadrant supérieur droit / axe dit extrême. Vérifier le tracé, le placement des électrodes et le contexte.', color: '#543C72' };
+  if (!leadII) return null;
+  if (leadII === 'isoelectric') return { title: 'Axe proche de −30°', detail: 'Lead I positif, aVF négatif et II isoélectrique : axe voisin de la limite adulte à −30°.', color: colors.blue };
+  if (leadII === 'positive') return { title: 'Axe adulte dans la plage normale', detail: 'Axe gauche entre environ −30° et 0° ; la plage adulte AHA reste normale jusqu’à −30°.', color: colors.tealDark };
+  return { title: 'Déviation axiale gauche', detail: 'Lead I positif, aVF négatif et II négatif : axe inférieur à −30°, compatible avec une déviation axiale gauche.', color: '#7B5531' };
 }
 
 const styles = StyleSheet.create({
@@ -207,21 +301,28 @@ const styles = StyleSheet.create({
   soonText: { color: colors.muted, fontSize: 8, fontWeight: '800' },
   liveBadge: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 5, borderRadius: radius.pill, backgroundColor: colors.violetSoft },
   liveText: { color: colors.violet, fontSize: 8, fontWeight: '900', letterSpacing: 0.4 },
-  qtcCard: { marginTop: 17, padding: 17, borderRadius: radius.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: '#DED8F6', ...shadow },
-  qtcHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  qtcEyebrow: { color: colors.violet, fontSize: 9, fontWeight: '900', letterSpacing: 1 },
-  qtcTitle: { marginTop: 4, color: colors.ink, fontSize: 21, fontWeight: '900' },
-  qtcIntro: { marginTop: 10, color: colors.muted, fontSize: 11, lineHeight: 17 },
+  toolPanel: { marginTop: 17, padding: 17, borderRadius: radius.lg, backgroundColor: colors.surface, borderWidth: 1, borderColor: '#DED8F6', ...shadow },
+  panelHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  panelIcon: { width: 42, height: 42, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  panelHeaderCopy: { flex: 1 },
+  panelEyebrow: { fontSize: 8, fontWeight: '900', letterSpacing: 0.9 },
+  panelTitle: { marginTop: 3, color: colors.ink, fontSize: 20, fontWeight: '900' },
+  panelIntro: { marginTop: 11, color: colors.muted, fontSize: 11, lineHeight: 17 },
+  segmented: { marginTop: 14, padding: 4, flexDirection: 'row', gap: 4, borderRadius: 14, backgroundColor: colors.canvas },
+  segment: { flex: 1, paddingHorizontal: 8, paddingVertical: 9, borderRadius: 11, alignItems: 'center' },
+  segmentText: { color: colors.muted, fontSize: 9, fontWeight: '800' },
+  segmentTextActive: { color: colors.white },
   inputRow: { marginTop: 15, flexDirection: 'row', gap: 10 },
   inputBlock: { flex: 1 },
-  inputLabel: { marginBottom: 7, color: colors.ink, fontSize: 10, fontWeight: '800' },
+  inputLabel: { marginTop: 14, marginBottom: 7, color: colors.ink, fontSize: 10, fontWeight: '800' },
   inputWrap: { minHeight: 50, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 7, borderRadius: 14, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.canvas },
+  singleInputWrap: { minHeight: 52, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 7, borderRadius: 14, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.canvas },
   input: { flex: 1, color: colors.ink, fontSize: 17, fontWeight: '900', paddingVertical: 10 },
   unit: { color: colors.violet, fontSize: 10, fontWeight: '900' },
   resultPanel: { marginTop: 15, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', padding: 15, borderRadius: 18, backgroundColor: colors.violetDeep },
   resultColumn: { flex: 1 },
   resultDivider: { width: 1, height: 42, marginHorizontal: 11, backgroundColor: 'rgba(255,255,255,0.18)' },
-  resultLabel: { color: '#C9C2EE', fontSize: 8, fontWeight: '900', letterSpacing: 0.8 },
+  resultLabel: { color: '#C9E5DF', fontSize: 8, fontWeight: '900', letterSpacing: 0.8 },
   resultValue: { marginTop: 4, color: colors.white, fontSize: 25, fontWeight: '900' },
   resultUnit: { color: '#C9C2EE', fontSize: 11 },
   rrText: { width: '100%', marginTop: 11, color: '#C9C2EE', fontSize: 9 },
@@ -236,6 +337,16 @@ const styles = StyleSheet.create({
   sourceCopy: { flex: 1 },
   sourceTitle: { color: colors.ink, fontSize: 10, fontWeight: '900' },
   sourceText: { marginTop: 2, color: colors.muted, fontSize: 9, lineHeight: 13 },
+  polarityBlock: { marginTop: 4 },
+  polarityRow: { flexDirection: 'row', gap: 7 },
+  polarityOption: { flex: 1, minHeight: 45, flexDirection: 'row', gap: 5, alignItems: 'center', justifyContent: 'center', borderRadius: 12, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.canvas },
+  polarityOptionActive: { borderColor: colors.blue, backgroundColor: colors.blue },
+  polarityText: { color: colors.blue, fontSize: 9, fontWeight: '800' },
+  polarityTextActive: { color: colors.white },
+  axisResult: { marginTop: 15, padding: 15, borderRadius: 18 },
+  axisResultLabel: { color: 'rgba(255,255,255,0.72)', fontSize: 8, fontWeight: '900', letterSpacing: 0.8 },
+  axisResultTitle: { marginTop: 5, color: colors.white, fontSize: 19, fontWeight: '900' },
+  axisResultText: { marginTop: 6, color: 'rgba(255,255,255,0.84)', fontSize: 10, lineHeight: 15 },
   methodCard: { marginTop: 17, padding: 16, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line },
   methodHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   methodCopy: { flex: 1 },
