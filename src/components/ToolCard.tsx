@@ -5,22 +5,50 @@ import { colors, radius, shadow } from '../theme/tokens';
 
 export function ToolCard({ tool, onPress, compact = false }: { tool: ClinicalTool; onPress: () => void; compact?: boolean }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.card, compact && styles.compact, pressed && styles.pressed]} accessibilityRole="button" accessibilityLabel={`Ouvrir ${tool.name}`}>
-      <View style={[styles.icon, { backgroundColor: tool.surfaceColor }]}><Ionicons name={tool.icon as keyof typeof Ionicons.glyphMap} size={23} color={tool.color} /></View>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, compact && styles.compact, pressed && styles.pressed]}
+      accessibilityRole="button"
+      accessibilityLabel={`Ouvrir ${tool.name}`}
+    >
+      <View style={[styles.icon, { backgroundColor: tool.surfaceColor }]}>
+        <Ionicons name={tool.icon as keyof typeof Ionicons.glyphMap} size={compact ? 20 : 22} color={tool.color} />
+      </View>
       <View style={styles.body}>
-        <View style={styles.topline}><Text style={styles.name} numberOfLines={1}>{tool.name}</Text>{tool.available ? <View style={styles.offline}><Text style={styles.offlineText}>OFFLINE</Text></View> : <Text style={styles.soon}>Bientôt</Text>}</View>
-        <Text style={styles.meta}>{tool.specialty} · {tool.duration}</Text>
+        <Text style={styles.name} numberOfLines={2}>{tool.name}</Text>
+        <Text style={styles.meta} numberOfLines={1}>{tool.specialty} · {tool.duration}</Text>
         {!compact && <Text style={styles.summary} numberOfLines={2}>{tool.summary}</Text>}
       </View>
-      <Ionicons name="chevron-forward" size={18} color="#93A29F" />
+      <View style={styles.trailing}>
+        {tool.available ? <View style={styles.offline}><Text style={styles.offlineText}>VALIDÉ</Text></View> : <Text style={styles.soon}>Bientôt</Text>}
+        <Ionicons name="chevron-forward" size={18} color="#8D9A97" />
+      </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { flexDirection: 'row', alignItems: 'center', gap: 13, padding: 16, backgroundColor: colors.surface, borderRadius: radius.md, ...shadow },
-  compact: { paddingVertical: 13, shadowOpacity: 0, elevation: 0, borderWidth: 1, borderColor: colors.line }, pressed: { opacity: 0.72, transform: [{ scale: 0.99 }] },
-  icon: { width: 48, height: 48, borderRadius: 15, alignItems: 'center', justifyContent: 'center' }, body: { flex: 1, gap: 3 }, topline: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  name: { flexShrink: 1, fontSize: 16, fontWeight: '800', color: colors.ink }, meta: { color: colors.muted, fontSize: 12, fontWeight: '600' }, summary: { color: colors.muted, fontSize: 13, lineHeight: 18, marginTop: 3 },
-  offline: { paddingHorizontal: 6, paddingVertical: 3, borderRadius: 6, backgroundColor: colors.mint }, offlineText: { color: colors.tealDark, fontSize: 8, fontWeight: '900', letterSpacing: 0.5 }, soon: { color: colors.amber, fontSize: 10, fontWeight: '800' },
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 15,
+    minHeight: 96,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.line,
+    ...shadow,
+  },
+  compact: { minHeight: 82, paddingVertical: 13, shadowOpacity: 0, elevation: 0 },
+  pressed: { opacity: 0.76, transform: [{ scale: 0.995 }] },
+  icon: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  body: { flex: 1, gap: 3 },
+  name: { fontSize: 15, lineHeight: 19, fontWeight: '900', color: colors.ink },
+  meta: { color: colors.muted, fontSize: 10, fontWeight: '600' },
+  summary: { color: colors.muted, fontSize: 12, lineHeight: 17, marginTop: 3 },
+  trailing: { alignItems: 'flex-end', justifyContent: 'space-between', alignSelf: 'stretch', paddingVertical: 2 },
+  offline: { paddingHorizontal: 7, paddingVertical: 4, borderRadius: radius.pill, backgroundColor: colors.mint },
+  offlineText: { color: colors.tealDark, fontSize: 8, fontWeight: '900', letterSpacing: 0.4 },
+  soon: { color: colors.amber, fontSize: 9, fontWeight: '800' },
 });
