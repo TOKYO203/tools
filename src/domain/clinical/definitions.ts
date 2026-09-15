@@ -42,6 +42,21 @@ const definitions: CalculatorDefinition[] = [{
     { id: 'vascular', label: 'Maladie vasculaire', shortLabel: 'V', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
   ],
 }, {
+  toolId: 'has-bled', min: 0, max: 9, resultHint: 'Un HAS-BLED élevé doit surtout déclencher la correction des facteurs modifiables et une surveillance adaptée ; il ne suffit pas à lui seul pour refuser une anticoagulation.',
+  ranges: [
+    { min: 0, max: 2, label: 'HAS-BLED 0–2' },
+    { min: 3, max: 9, label: 'HAS-BLED ≥ 3 : risque hémorragique accru, vigilance renforcée' },
+  ],
+  fields: [
+    { id: 'hypertension', label: 'Hypertension non contrôlée (PAS > 160 mmHg)', shortLabel: 'H', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'renalLiver', label: 'Fonction rénale / hépatique anormale (1 point chacune)', shortLabel: 'A', options: [{ value: 0, label: 'Aucune' }, { value: 1, label: 'Rénale ou hépatique' }, { value: 2, label: 'Rénale et hépatique' }] },
+    { id: 'stroke', label: 'Antécédent d’AVC', shortLabel: 'S', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'bleeding', label: 'Antécédent de saignement majeur ou prédisposition', shortLabel: 'B', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'labileInr', label: 'INR labile / temps dans la zone thérapeutique insuffisant', shortLabel: 'L', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'elderly', label: 'Âge > 65 ans', shortLabel: 'E', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'drugsAlcohol', label: 'Médicaments favorisant le saignement / alcool (1 point chacun)', shortLabel: 'D', options: [{ value: 0, label: 'Aucun' }, { value: 1, label: 'Médicaments ou alcool' }, { value: 2, label: 'Médicaments et alcool' }] },
+  ],
+}, {
   toolId: 'curb-65', min: 0, max: 5, resultHint: 'Interpréter avec le contexte clinique et les protocoles locaux.',
   fields: [
     { id: 'confusion', label: 'Confusion nouvelle', shortLabel: 'C', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
@@ -49,6 +64,20 @@ const definitions: CalculatorDefinition[] = [{
     { id: 'respiratoryRate', label: 'Fréquence respiratoire ≥ 30/min', shortLabel: 'R', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
     { id: 'bloodPressure', label: 'PAS < 90 ou PAD ≤ 60 mmHg', shortLabel: 'B', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
     { id: 'age65', label: 'Âge ≥ 65 ans', shortLabel: '65', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+  ],
+}, {
+  toolId: 'mcisaac', min: -1, max: 5, resultHint: 'Le score de McIsaac estime la probabilité de pharyngite à streptocoque A ; le choix d’un test et d’un traitement dépend des recommandations locales.',
+  ranges: [
+    { min: -1, max: 1, label: 'Probabilité plus faible de streptocoque A' },
+    { min: 2, max: 3, label: 'Probabilité intermédiaire' },
+    { min: 4, max: 5, label: 'Probabilité plus élevée' },
+  ],
+  fields: [
+    { id: 'fever', label: 'Température > 38 °C', shortLabel: 'Fièvre', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'tonsils', label: 'Exsudat ou tuméfaction amygdalienne', shortLabel: 'Amyg', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'nodes', label: 'Adénopathies cervicales antérieures sensibles', shortLabel: 'ADP', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'cough', label: 'Absence de toux', shortLabel: 'Toux', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'age', label: 'Âge', shortLabel: 'Âge', options: [{ value: 1, label: '3 à 14 ans' }, { value: 0, label: '15 à 44 ans' }, { value: -1, label: '45 ans ou plus' }] },
   ],
 }, {
   toolId: 'wells-pe', min: 0, max: 12.5, resultHint: 'Modèle à deux niveaux : le score ne confirme ni n’exclut seul une EP.',
@@ -102,6 +131,62 @@ const definitions: CalculatorDefinition[] = [{
     { id: 'age', label: 'Âge', shortLabel: 'A', options: [{ value: 0, label: 'Moins de 45 ans' }, { value: 1, label: '45 à 64 ans' }, { value: 2, label: '65 ans ou plus' }] },
     { id: 'riskFactors', label: 'Facteurs de risque cardiovasculaire', shortLabel: 'R', options: [{ value: 0, label: 'Aucun facteur connu' }, { value: 1, label: '1 à 2 facteurs' }, { value: 2, label: '≥ 3 facteurs ou antécédent athéroscléreux' }] },
     { id: 'troponin', label: 'Troponine par rapport à la limite supérieure de la normale', shortLabel: 'T', options: [{ value: 0, label: '≤ limite normale' }, { value: 1, label: '> 1 à < 3 × la limite normale' }, { value: 2, label: '≥ 3 × la limite normale' }] },
+  ],
+}, {
+  toolId: 'abcd2', min: 0, max: 7, resultHint: 'ABCD₂ est un score pronostique après AIT suspecté ; il ne doit pas retarder l’évaluation urgente ni être utilisé seul pour décider l’orientation.',
+  ranges: [
+    { min: 0, max: 3, label: 'ABCD₂ 0–3' },
+    { min: 4, max: 5, label: 'ABCD₂ 4–5' },
+    { min: 6, max: 7, label: 'ABCD₂ 6–7' },
+  ],
+  fields: [
+    { id: 'age', label: 'Âge ≥ 60 ans', shortLabel: 'A', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'bloodPressure', label: 'PA initiale ≥ 140/90 mmHg', shortLabel: 'B', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'clinical', label: 'Caractéristiques cliniques', shortLabel: 'C', options: [{ value: 0, label: 'Autre présentation' }, { value: 1, label: 'Trouble de la parole sans faiblesse' }, { value: 2, label: 'Faiblesse unilatérale' }] },
+    { id: 'duration', label: 'Durée des symptômes', shortLabel: 'D', options: [{ value: 0, label: '< 10 minutes' }, { value: 1, label: '10 à 59 minutes' }, { value: 2, label: '≥ 60 minutes' }] },
+    { id: 'diabetes', label: 'Diabète', shortLabel: 'D₂', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+  ],
+}, {
+  toolId: 'rcri', min: 0, max: 6, resultHint: 'Le RCRI estime le risque cardiaque périopératoire en chirurgie non cardiaque ; le risque absolu dépend du contexte, de la population et de la stratégie périopératoire.',
+  ranges: [
+    { min: 0, max: 0, label: '0 facteur RCRI' },
+    { min: 1, max: 1, label: '1 facteur RCRI' },
+    { min: 2, max: 2, label: '2 facteurs RCRI' },
+    { min: 3, max: 6, label: '≥ 3 facteurs RCRI' },
+  ],
+  fields: [
+    { id: 'highRiskSurgery', label: 'Chirurgie à haut risque selon la définition du RCRI', shortLabel: 'Chir', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'ischemicHeartDisease', label: 'Antécédent de cardiopathie ischémique', shortLabel: 'CI', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'heartFailure', label: 'Antécédent d’insuffisance cardiaque', shortLabel: 'IC', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'cerebrovascular', label: 'Antécédent de maladie cérébrovasculaire', shortLabel: 'Cérébro', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'insulin', label: 'Diabète traité par insuline en préopératoire', shortLabel: 'Ins', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+    { id: 'creatinine', label: 'Créatinine préopératoire > 2,0 mg/dL (≈ 177 µmol/L)', shortLabel: 'Cr', options: [{ value: 0, label: 'Non' }, { value: 1, label: 'Oui' }] },
+  ],
+}, {
+  toolId: 'nihss', min: 0, max: 42, resultHint: 'Le NIHSS doit être réalisé de façon standardisée. Un item non testable ne doit pas être arbitrairement coté 0.',
+  ranges: [
+    { min: 0, max: 0, label: 'NIHSS 0' },
+    { min: 1, max: 4, label: 'Déficit mineur (NIHSS 1–4)' },
+    { min: 5, max: 15, label: 'Déficit modéré (NIHSS 5–15)' },
+    { min: 16, max: 20, label: 'Déficit modéré à sévère (NIHSS 16–20)' },
+    { min: 21, max: 42, label: 'Déficit sévère (NIHSS 21–42)' },
+  ],
+  fields: [
+    { id: 'loc', label: '1a. Niveau de conscience', shortLabel: '1a', options: [{ value: 0, label: 'Alerte' }, { value: 1, label: 'Somnolent mais éveillable par stimulation mineure' }, { value: 2, label: 'Nécessite des stimulations répétées ou douloureuses' }, { value: 3, label: 'Réponses réflexes seulement ou aucune réponse' }] },
+    { id: 'questions', label: '1b. Questions de conscience', shortLabel: '1b', options: [{ value: 0, label: 'Deux réponses correctes' }, { value: 1, label: 'Une réponse correcte' }, { value: 2, label: 'Aucune réponse correcte' }] },
+    { id: 'commands', label: '1c. Ordres simples', shortLabel: '1c', options: [{ value: 0, label: 'Deux ordres exécutés' }, { value: 1, label: 'Un ordre exécuté' }, { value: 2, label: 'Aucun ordre exécuté' }] },
+    { id: 'gaze', label: '2. Motricité oculaire horizontale', shortLabel: '2', options: [{ value: 0, label: 'Normale' }, { value: 1, label: 'Parésie partielle du regard' }, { value: 2, label: 'Déviation forcée ou paralysie totale du regard' }] },
+    { id: 'visual', label: '3. Champ visuel', shortLabel: '3', options: [{ value: 0, label: 'Normal' }, { value: 1, label: 'Hémianopsie partielle' }, { value: 2, label: 'Hémianopsie complète' }, { value: 3, label: 'Hémianopsie bilatérale / cécité corticale' }] },
+    { id: 'facial', label: '4. Paralysie faciale', shortLabel: '4', options: [{ value: 0, label: 'Normale' }, { value: 1, label: 'Parésie mineure' }, { value: 2, label: 'Paralysie partielle' }, { value: 3, label: 'Paralysie complète uni- ou bilatérale' }] },
+    { id: 'leftArm', label: '5a. Motricité bras gauche', shortLabel: '5a', options: [{ value: 0, label: 'Pas de chute' }, { value: 1, label: 'Chute avant 10 s sans toucher le lit' }, { value: 2, label: 'Effort contre la pesanteur mais chute sur le lit' }, { value: 3, label: 'Aucun effort contre la pesanteur' }, { value: 4, label: 'Aucun mouvement' }] },
+    { id: 'rightArm', label: '5b. Motricité bras droit', shortLabel: '5b', options: [{ value: 0, label: 'Pas de chute' }, { value: 1, label: 'Chute avant 10 s sans toucher le lit' }, { value: 2, label: 'Effort contre la pesanteur mais chute sur le lit' }, { value: 3, label: 'Aucun effort contre la pesanteur' }, { value: 4, label: 'Aucun mouvement' }] },
+    { id: 'leftLeg', label: '6a. Motricité jambe gauche', shortLabel: '6a', options: [{ value: 0, label: 'Pas de chute' }, { value: 1, label: 'Chute avant 5 s sans toucher le lit' }, { value: 2, label: 'Effort contre la pesanteur mais chute sur le lit' }, { value: 3, label: 'Aucun effort contre la pesanteur' }, { value: 4, label: 'Aucun mouvement' }] },
+    { id: 'rightLeg', label: '6b. Motricité jambe droite', shortLabel: '6b', options: [{ value: 0, label: 'Pas de chute' }, { value: 1, label: 'Chute avant 5 s sans toucher le lit' }, { value: 2, label: 'Effort contre la pesanteur mais chute sur le lit' }, { value: 3, label: 'Aucun effort contre la pesanteur' }, { value: 4, label: 'Aucun mouvement' }] },
+    { id: 'ataxia', label: '7. Ataxie des membres', shortLabel: '7', options: [{ value: 0, label: 'Absente' }, { value: 1, label: 'Présente dans un membre' }, { value: 2, label: 'Présente dans deux membres' }] },
+    { id: 'sensory', label: '8. Sensibilité', shortLabel: '8', options: [{ value: 0, label: 'Normale' }, { value: 1, label: 'Déficit léger à modéré' }, { value: 2, label: 'Déficit sévère à total' }] },
+    { id: 'language', label: '9. Langage', shortLabel: '9', options: [{ value: 0, label: 'Pas d’aphasie' }, { value: 1, label: 'Aphasie légère à modérée' }, { value: 2, label: 'Aphasie sévère' }, { value: 3, label: 'Mutisme / aphasie globale' }] },
+    { id: 'dysarthria', label: '10. Dysarthrie', shortLabel: '10', options: [{ value: 0, label: 'Normale' }, { value: 1, label: 'Légère à modérée' }, { value: 2, label: 'Sévère / anarthrie' }] },
+    { id: 'neglect', label: '11. Extinction / inattention', shortLabel: '11', options: [{ value: 0, label: 'Aucune' }, { value: 1, label: 'Inattention ou extinction dans une modalité' }, { value: 2, label: 'Hémi-inattention profonde ou plusieurs modalités' }] },
   ],
 }];
 
