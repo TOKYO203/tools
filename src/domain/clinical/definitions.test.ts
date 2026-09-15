@@ -24,8 +24,12 @@ describe('moteur additif', () => {
   it('rejette une option absente de la définition', () => expect(() => calculateAdditiveScore(definition, { eye: 9, verbal: 5, motor: 6 })).toThrow());
   it.each([
     ['cha2ds2-vasc', 9],
+    ['cha2ds2-va', 8],
     ['curb-65', 5],
     ['wells-pe', 12.5],
+    ['qsofa', 3],
+    ['perc', 8],
+    ['heart-score', 10],
   ])('atteint le maximum documenté pour %s', (toolId, maximum) => {
     const item = calculatorDefinitions.find((candidate) => candidate.toolId === toolId)!;
     const values = Object.fromEntries(item.fields.map((field) => [field.id, field.options.at(-1)!.value]));
@@ -37,5 +41,18 @@ describe('moteur additif', () => {
     expect(calculateAdditiveScore(item, improbable).interpretation).toContain('improbable');
     const probable = { ...improbable, dvtSigns: 3, alternative: 3 };
     expect(calculateAdditiveScore(item, probable).interpretation).toContain('probable');
+  });
+  it('rend PERC négatif uniquement si aucun critère n’est positif', () => {
+    const item = calculatorDefinitions.find((candidate) => candidate.toolId === 'perc')!;
+    const negative = Object.fromEntries(item.fields.map((field) => [field.id, 0]));
+    expect(calculateAdditiveScore(item, negative).interpretation).toContain('négatif');
+    expect(calculateAdditiveScore(item, { ...negative, age: 1 }).interpretation).toContain('positif');
+  });
+  it('classe HEART en trois groupes', () => {
+    const item = calculatorDefinitions.find((candidate) => candidate.toolId === 'heart-score')!;
+    const zero = Object.fromEntries(item.fields.map((field) => [field.id, 0]));
+    expect(calculateAdditiveScore(item, zero).interpretation).toContain('faible');
+    expect(calculateAdditiveScore(item, { ...zero, history: 2, ecg: 2 }).interpretation).toContain('intermédiaire');
+    expect(calculateAdditiveScore(item, { ...zero, history: 2, ecg: 2, age: 2, riskFactors: 1 }).interpretation).toContain('élevé');
   });
 });
